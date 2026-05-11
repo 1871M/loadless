@@ -1020,12 +1020,12 @@ html.large-text{font-size:115%;}
   </nav>
   <!-- Menu "Plus" / Profil : modules secondaires -->
   <div id="more-menu" class="more-menu" role="menu" aria-label="Modules supplémentaires">
-    <button class="more-it" id="n-tk" onclick="showPage('tasks',this);closeMoreMenu()" role="menuitem"><span class="more-ic">✅</span><span class="more-lb">Tâches</span><span class="more-ar">›</span></button>
-    <button class="more-it" id="n-bg" onclick="showPage('budget',this);closeMoreMenu()" role="menuitem"><span class="more-ic">💳</span><span class="more-lb">Budget</span><span class="more-ar">›</span></button>
-    <button class="more-it" id="n-sh" onclick="showPage('shop',this);closeMoreMenu()" role="menuitem"><span class="more-ic">🛒</span><span class="more-lb">Courses</span><span class="more-ar">›</span></button>
-    <button class="more-it" id="n-ml" onclick="showPage('meals',this);closeMoreMenu()" role="menuitem"><span class="more-ic">🍽️</span><span class="more-lb">Repas</span><span class="more-ar">›</span></button>
-    <button class="more-it" onclick="showPage('equity',document.getElementById('n-st'));closeMoreMenu()" role="menuitem"><span class="more-ic">⚖️</span><span class="more-lb">Équité</span><span class="more-ar">›</span></button>
-    <button class="more-it" id="n-more" onclick="showPage('settings',this);closeMoreMenu()" role="menuitem"><span class="more-ic">👤</span><span class="more-lb">Profil &amp; réglages</span><span class="more-ar">›</span></button>
+    <button class="more-it" id="n-tk" onclick="showPage('tasks',this);closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--p1d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="more-lb">Tâches</span><span class="more-ar">›</span></button>
+    <button class="more-it" id="n-bg" onclick="showPage('budget',this);closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--goldm)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span class="more-lb">Budget</span><span class="more-ar">›</span></button>
+    <button class="more-it" id="n-sh" onclick="showPage('shop',this);closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--p2m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><span class="more-lb">Courses</span><span class="more-ar">›</span></button>
+    <button class="more-it" id="n-ml" onclick="showPage('meals',this);closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span class="more-lb">Repas</span><span class="more-ar">›</span></button>
+    <button class="more-it" onclick="showPage('equity',document.getElementById('n-st'));closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="more-lb">Équité</span><span class="more-ar">›</span></button>
+    <button class="more-it" id="n-more" onclick="showPage('settings',this);closeMoreMenu()" role="menuitem"><span class="more-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="more-lb">Profil &amp; réglages</span><span class="more-ar">›</span></button>
   </div>
 </div>
 
@@ -3077,7 +3077,7 @@ async function addIngrToShop(){
   const{error}=await sb.from('shopping_items').insert(toAdd.map(name=>({name,qty:'1',category:'epicerie',couple_id:A.couple.id,added_by:A.user.id})));
   if(error){toast('Erreur','error');return;}
   toast(toAdd.length+' ingrédient'+(toAdd.length>1?'s':'')+' ajouté'+(toAdd.length>1?'s':'')+' !','success');
-  showPage('shop',document.getElementById('n-more'));
+  showPage('shop',document.getElementById('n-sh'));closeMoreMenu();
 }
 
 /* ═══ CHAT E2E ═══ */
