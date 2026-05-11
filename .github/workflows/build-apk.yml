@@ -40,20 +40,20 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install rsvg-convert (SVG→PNG)
-        run: sudo apt-get install -y librsvg2-bin
+      - name: Install ImageMagick (PNG resize)
+        run: sudo apt-get install -y imagemagick
 
-      - name: Generate app icons from SVG
+      - name: Generate app icons from PNG
         run: |
-          SVG=assets/icon.svg
+          SRC=assets/icon.png
           # Web PWA icons
           mkdir -p icons
           for SIZE in 72 96 128 144 152 192 384 512; do
-            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "icons/icon-${SIZE}.png"
+            convert "$SRC" -resize ${SIZE}x${SIZE} "icons/icon-${SIZE}.png"
             echo "✅ icons/icon-${SIZE}.png"
           done
           # Keep logo.png in sync (used by loader)
-          rsvg-convert -w 192 -h 192 "$SVG" -o "assets/logo.png"
+          convert "$SRC" -resize 192x192 "assets/logo.png"
           echo "✅ assets/logo.png"
 
       - name: Add Android platform
@@ -79,7 +79,7 @@ jobs:
 
       - name: Inject custom launcher icons into Android
         run: |
-          SVG=assets/icon.svg
+          SRC=assets/icon.png
           RES=android/app/src/main/res
           # Standard mipmap sizes
           declare -A SIZES=(
@@ -92,13 +92,13 @@ jobs:
           for DIR in "${!SIZES[@]}"; do
             SIZE=${SIZES[$DIR]}
             mkdir -p "$RES/$DIR"
-            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "$RES/$DIR/ic_launcher.png"
-            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "$RES/$DIR/ic_launcher_round.png"
+            convert "$SRC" -resize ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher.png"
+            convert "$SRC" -resize ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher_round.png"
             echo "✅ $RES/$DIR/ic_launcher.png (${SIZE}px)"
           done
-          # Adaptive icon foreground (108dp safe zone = 432/1024 of image)
+          # Adaptive icon foreground (432px — centré sur fond transparent)
           mkdir -p "$RES/mipmap-anydpi-v26"
-          rsvg-convert -w 432 -h 432 "$SVG" -o "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
+          convert "$SRC" -resize 432x432 "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
           echo "✅ Adaptive foreground injected"
 
       - name: Prepare webDir
