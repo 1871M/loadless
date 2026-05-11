@@ -1209,7 +1209,7 @@ html.large-text{font-size:115%;}
       </div>
     </div>
   </div>
-  <div class="mo-bts"><button class="btn-cc" onclick="closeM('mo-ac')">Annuler</button><button class="btn-sv" onclick="saveAccount()">Créer</button></div>
+  <div class="mo-bts"><button class="btn-cc" onclick="_editAcId=null;closeM('mo-ac')">Annuler</button><button class="btn-sv" onclick="saveAccount()">Créer</button></div>
 </div>
 </div>
 
@@ -2780,7 +2780,7 @@ function renderBudget(){
     d.innerHTML='<div class="ac-ty">'+({courant:'💳 Courant',epargne:'🏦 Épargne',especes:'💵 Espèces'}[ac.type]||ac.type)+'</div>'+'<div class="ac-nm">'+esc(ac.name)+'</div>'+'<div class="ac-bl" style="color:'+ac.color+';font-family:Lora,serif">'+fmtE(Number(ac.balance))+'</div>'+'<div style="font-size:10px;color:var(--muted);margin-top:6px;cursor:pointer" onclick="event.stopPropagation();editAccount(\''+ac.id+'\')">✏️ Modifier</div>';
     d.onclick=()=>{A.selAc=ac.id;renderBudget();};ar.appendChild(d);
   });
-  const ab=document.createElement('button');ab.className='btn-ac';ab.innerHTML='＋<span>Compte</span>';ab.onclick=()=>openM('mo-ac');ar.appendChild(ab);
+  const ab=document.createElement('button');ab.className='btn-ac';ab.innerHTML='＋<span>Compte</span>';ab.onclick=()=>{_editAcId=null;document.querySelector('#mo-ac .mo-tt').textContent='Ajouter un compte';openM('mo-ac');};ar.appendChild(ab);
 
   // ✅ Détection automatique des abonnements (récurrents implicites)
   renderDetectedSubs();
@@ -2929,6 +2929,7 @@ function toggleSubsList(){
 }
 let _editTxId=null;
 function openTx(type,txId){
+  if(!txId&&!A.accounts.length){toast('Créez d\'abord un compte bancaire (bouton ＋ Compte).','info');return;}
   _editTxId=txId||null;
   const isEdit=!!txId;
   const labels={expense:'Dépense',income:'Revenu',recurring:'Prélèvement',withdrawal:'Retrait'};
@@ -2979,6 +2980,7 @@ async function _directDelete(id){
 }
 
 async function saveTx(){
+  if(!A.couple){toast('Session expirée. Rechargez la page.','error');return;}
   const title=document.getElementById('tx-ti').value.trim();
   const amount=parseFloat(document.getElementById('tx-am').value);
   if(!title||!amount||amount<=0){toast('Remplissez titre et montant (> 0).','error');return;}
@@ -3029,7 +3031,7 @@ async function saveTx(){
     closeM('mo-tx');toast('Enregistré !','success');renderBudget();_reloadTxs();return;
   }
   // RPC obligatoire — pas de fallback (bloqué par RLS tx_block_direct_insert)
-  const msg=error?.message||data?.message||'Erreur serveur.';
+  const msg=error?.message||data?.error||data?.message||'Erreur serveur.';
   toast('Erreur: '+msg,'error');
 }
 
@@ -3058,14 +3060,15 @@ function editAccount(id){
   openM('mo-ac');
 }
 async function saveAccount(){
-  const name=document.getElementById('ac-nm').value.trim();if(!name)return;
+  if(!A.couple){toast('Session expirée. Rechargez la page.','error');return;}
+  const name=document.getElementById('ac-nm').value.trim();
+  if(!name){toast('Saisissez un nom de compte.','error');return;}
   const bal=parseFloat(document.getElementById('ac-bl').value)||0;
   const rawColor=document.getElementById('ac-co').value;
-  // ✅ Sanitize couleur côté client (la DB n'a pas de contrainte sur accounts.color, donc on protège ici)
   const safeColor=sanitizeColor(rawColor);
   const color=/^#[0-9A-Fa-f]{6}$/.test(safeColor)?safeColor:'#8B5CF6';
   const type=document.getElementById('ac-ty').value;
-
+  try{
   if(_editAcId){
     const ac=A.accounts.find(x=>x.id===_editAcId);
     if(!ac){toast('Compte introuvable.','error');return;}
@@ -3093,6 +3096,7 @@ async function saveAccount(){
   _editAcId=null;
   document.querySelector('#mo-ac .mo-tt').textContent='Ajouter un compte';
   renderBudget();
+  }catch(e){toast('Erreur inattendue: '+e.message,'error');}
 }
 
 /* ═══ MEALS ═══ */
