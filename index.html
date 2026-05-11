@@ -3905,7 +3905,7 @@ function openProfileEdit(){
 function pickProfilePhoto(){
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';
-  inp.style.cssText='position:fixed;opacity:0;pointer-events:none;top:0;left:0;width:0;height:0';
+  inp.style.cssText='position:fixed;opacity:0;top:-200px;left:-200px;width:1px;height:1px';
   document.body.appendChild(inp);
   inp.onchange=async(e)=>{
     document.body.removeChild(inp);
