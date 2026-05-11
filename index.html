@@ -1189,7 +1189,7 @@ html.large-text{font-size:115%;}
     </div>
     <div class="fd"><label>Note</label><input id="tx-no" type="text" placeholder="Optionnel…"></div>
   </div>
-  <div class="mo-bts"><button class="btn-cc" onclick="closeM('mo-tx')">Annuler</button><button class="btn-sv" onclick="saveTx()">Enregistrer</button></div>
+  <div class="mo-bts"><button class="btn-cc" onclick="_editTxId=null;closeM('mo-tx')">Annuler</button><button class="btn-sv" onclick="saveTx()">Enregistrer</button></div>
 </div>
 </div>
 
@@ -2676,6 +2676,7 @@ async function saveShopItem(){
 
 // addShop conservé pour la barre rapide en haut de la liste (touche Entrée)
 async function addShop(){
+  if(!A.couple||!A.user){toast('Session expirée. Rechargez la page.','error');return;}
   const inp=document.getElementById('sh-in');if(!inp)return;
   const name=inp.value.trim();if(!name){openShopModal();return;}
   const qty=document.getElementById('sh-qt')?.value.trim()||'1';
@@ -3001,13 +3002,9 @@ async function saveTx(){
     });
     const rpcOk=!upErr&&upd&&!upd.error;
     if(!rpcOk){
-      // Fallback direct update
-      const{error:ue}=await sb.from('transactions').update({account_id:accId,title,amount,type,category:cat,note,tx_date:txDate}).eq('id',_editTxId);
-      if(ue){toast('Erreur: '+ue.message,'error');return;}
-      // Corriger le solde dans la DB
-      if(old){const oldAc=A.accounts.find(x=>x.id===old.account_id);if(oldAc)sb.from('accounts').update({balance:Number(oldAc.balance)-_txDelta(old.type,Number(old.amount))}).eq('id',old.account_id);}
-      const newAcDb=A.accounts.find(x=>x.id===accId);
-      if(newAcDb)sb.from('accounts').update({balance:Number(newAcDb.balance)+_txDelta(type,amount)}).eq('id',accId);
+      const errMsg=upErr?.message||upd?.error||'Erreur serveur.';
+      toast('Erreur modification: '+errMsg,'error');
+      return;
     }
     // Patch local immédiat : transaction + solde comptes
     const i=A.txs.findIndex(x=>x.id===_editTxId);
@@ -3128,8 +3125,10 @@ function openMealM(day,slot){
 }
 
 async function saveMeal(){
+  if(!A.couple||!A.user){toast('Session expirée. Rechargez la page.','error');return;}
   const name=document.getElementById('ml-nm').value.trim();
   if(!name){toast('Indiquez le nom du plat.','error');return;}
+  if(!_mT.day){toast('Sélectionnez d\'abord un jour.','error');return;}
   const ingr=document.getElementById('ml-ig').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
   const{data,error}=await sb.from('meals').upsert({
     couple_id:A.couple.id,meal_date:_mT.day,slot:_mT.slot,
@@ -3465,8 +3464,8 @@ function buildEqPerson(p,exp,real,gap){
 }
 function saveAvail(){
   const me=A.me,pt=A.partner;
-  if(me){const v=parseInt(document.getElementById('av-me')?.value)||DEFAULT_AVAIL_HOURS;A.avail[me.id]=v;}
-  if(pt){const v=parseInt(document.getElementById('av-pt')?.value)||DEFAULT_AVAIL_HOURS;A.avail[pt.id]=v;}
+  if(me){const v=parseInt(document.getElementById('av-me')?.value,10)||DEFAULT_AVAIL_HOURS;A.avail[me.id]=v;}
+  if(pt){const v=parseInt(document.getElementById('av-pt')?.value,10)||DEFAULT_AVAIL_HOURS;A.avail[pt.id]=v;}
   localStorage.setItem('ll-av',JSON.stringify(A.avail));
   toast('Équité recalculée !','success');renderEquity();
 }
@@ -4221,6 +4220,7 @@ function selectCalColor(color,el){
 }
 
 function openCalModal(dateStr){
+  _editCalId=null;
   document.getElementById('cal-title').value='';
   document.getElementById('cal-note').value='';
   document.getElementById('cal-time').value='';
@@ -4530,7 +4530,7 @@ const BackupManager={
     <div class="fd"><label>Note</label><input id="cal-note" type="text" placeholder="Optionnel…"></div>
   </div>
   <div class="mo-bts">
-    <button class="btn-cc" onclick="closeM('mo-cal')">Annuler</button>
+    <button class="btn-cc" onclick="_editCalId=null;closeM('mo-cal')">Annuler</button>
     <button class="btn-sv" onclick="saveCalEvent()">Enregistrer</button>
   </div>
 </div>
