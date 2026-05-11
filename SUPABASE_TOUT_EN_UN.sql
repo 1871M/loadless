@@ -678,5 +678,16 @@ do $$ begin
 end $$;
 
 -- ══════════════════════════════════════════════
---  FIN — LoadLess SQL v8 complet
+--  CHAT MEDIA — colonnes messages
+-- ══════════════════════════════════════════════
+
+alter table messages add column if not exists media_url text;
+alter table messages add column if not exists media_type text
+  check (media_type in ('audio','image','video','file'));
+alter table messages add column if not exists media_name text;
+alter table messages add column if not exists media_size int;
+alter table messages add column if not exists media_duration int;
+
+-- ══════════════════════════════════════════════
+--  FIN — LoadLess SQL v9 complet
 -- ══════════════════════════════════════════════

@@ -12,7 +12,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=()">
 <title>Loadless</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -772,6 +772,43 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ch-sd:active{transform:scale(.94);}
 .ch-et{background:none;border:none;cursor:pointer;font-size:14px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px;opacity:.45;color:var(--muted);}
 .ch-et.on{opacity:1;color:var(--gold);}
+.ch-att{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--muted);opacity:.55;transition:opacity .2s,background .2s;flex-shrink:0;}
+.ch-att:hover{opacity:1;background:var(--bg);}
+.ch-mic{background:var(--p1d);border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;box-shadow:0 4px 12px rgba(91,78,192,.35);transition:all .2s var(--ease-spring);flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;}
+.ch-mic.rec{background:var(--red,#ef4444);box-shadow:0 4px 12px rgba(239,68,68,.5);}
+.ch-rec-bar{display:none;align-items:center;gap:10px;padding:9px 16px;background:var(--bg);border-top:1px solid var(--border2);font-size:12px;font-weight:600;color:var(--red,#ef4444);}
+.ch-rec-bar.on{display:flex;}
+.ch-rec-dot{width:9px;height:9px;border-radius:50%;background:var(--red,#ef4444);animation:pulse 1s ease-in-out infinite;flex-shrink:0;}
+.ch-att-menu{position:absolute;bottom:64px;left:10px;background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--sh-3d);padding:7px;display:none;flex-direction:column;gap:3px;z-index:200;min-width:185px;}
+.ch-att-menu.on{display:flex;}
+.ch-att-item{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink);transition:background .15s;text-align:left;width:100%;font-family:'Outfit',sans-serif;}
+.ch-att-item:hover{background:var(--bg);}
+.msg-audio{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:18px;min-width:190px;max-width:260px;}
+.msg.theirs .msg-audio{background:var(--surface);}
+.msg.mine .msg-audio{background:var(--p1d);}
+.msg-audio-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.msg.mine .msg-audio-btn{background:rgba(255,255,255,.25);color:#fff;}
+.msg.theirs .msg-audio-btn{background:var(--p1);color:#fff;}
+.msg-audio-track{flex:1;display:flex;flex-direction:column;gap:4px;}
+.msg-audio-bar{height:3px;background:rgba(0,0,0,.12);border-radius:2px;cursor:pointer;overflow:hidden;}
+.msg.mine .msg-audio-bar{background:rgba(255,255,255,.25);}
+.msg-audio-prog{height:100%;background:var(--p1m);border-radius:2px;width:0%;transition:width .1s;}
+.msg.mine .msg-audio-prog{background:rgba(255,255,255,.75);}
+.msg-audio-dur{font-size:10px;font-weight:700;color:var(--muted);}
+.msg.mine .msg-audio-dur{color:rgba(255,255,255,.75);}
+.msg-img-wrap{border-radius:14px;overflow:hidden;cursor:pointer;max-width:260px;}
+.msg-img-wrap img{display:block;width:100%;max-height:220px;object-fit:cover;}
+.msg-img-wrap video{display:block;width:100%;max-height:220px;object-fit:cover;}
+.msg-img-ph{width:200px;height:140px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;border-radius:14px;}
+.msg-file{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;cursor:pointer;border:1.5px solid var(--border2);max-width:260px;}
+.msg.mine .msg-file{border-color:rgba(255,255,255,.2);}
+.msg-file-icon{font-size:22px;flex-shrink:0;}
+.msg-file-info{flex:1;min-width:0;}
+.msg-file-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
+.msg.mine .msg-file-name{color:#fff;}
+.msg-file-size{font-size:10px;opacity:.6;}
+.msg-sending{opacity:.5;pointer-events:none;}
+.ch-fullscreen-ov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
 /* EQUITY — Toy-Style */
 .eq-wr{padding:14px;}
@@ -1026,7 +1063,25 @@ html.large-text{font-size:115%;}
         </select>
       </div>
       <div class="ch-ms" id="ch-ms"><div class="empty"><div class="ei">💬</div><p>Espace privé · 🔒 Chiffré de bout en bout<br><span style="font-size:10px;opacity:.7">Appui long sur ✉ pour activer l'auto-suppression</span></p></div></div>
-      <div class="ch-iw">
+      <!-- Barre enregistrement vocal -->
+      <div class="ch-rec-bar" id="ch-rec-bar">
+        <span class="ch-rec-dot"></span>
+        <span id="ch-rec-time">0:00</span>
+        <span id="ch-rec-hint" style="flex:1;font-size:11px;color:var(--muted)">← Glisser pour annuler</span>
+      </div>
+      <div class="ch-iw" style="position:relative;">
+        <!-- Menu pièce jointe -->
+        <div class="ch-att-menu" id="ch-att-menu">
+          <button class="ch-att-item" onclick="pickMedia()">🖼 Photo / Vidéo</button>
+          <button class="ch-att-item" onclick="pickFile()">📄 Fichier</button>
+        </div>
+        <!-- Inputs fichiers cachés -->
+        <input type="file" id="ch-fi-media" accept="image/*,video/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleMediaPick(this)">
+        <input type="file" id="ch-fi-file" accept="*/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleFilePick(this)">
+        <!-- Bouton pièce jointe -->
+        <button class="ch-att" id="ch-att-btn" onclick="openAttachMenu()" aria-label="Joindre un fichier">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
         <textarea class="ch-in" id="ch-in" placeholder="Message…" rows="1" onkeydown="chKey(event)" oninput="chResize(this)"></textarea>
         <div class="ch-bts">
           <button class="ch-sd" id="ch-sd-btn"
@@ -1036,6 +1091,15 @@ html.large-text{font-size:115%;}
             onpointerleave="chSdPressEnd(event)"
             aria-label="Envoyer — appui long pour messages éphémères">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </button>
+          <!-- Bouton microphone -->
+          <button class="ch-mic" id="ch-mic-btn"
+            onpointerdown="micPressStart(event)"
+            onpointermove="micPressMove(event)"
+            onpointerup="micPressEnd(event)"
+            onpointercancel="micPressCancel(event)"
+            aria-label="Message vocal — appui long">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </button>
         </div>
       </div>
@@ -1427,19 +1491,11 @@ const E2E={
 
   // ── Dérivation ECDH → AES-GCM via HKDF ───────────────────
   // Plus sûr que dérivation directe — ajoute un salt et un contexte
-  async deriv(myPrivKey,theirPubKey,salt='loadless-v1'){
-    // 1. Secret ECDH brut
-    const ecdhSecret=await crypto.subtle.deriveKey(
-      {name:'ECDH',public:theirPubKey},myPrivKey,
-      {name:'HKDF'},false,['deriveKey']
-    );
-    // Note: HKDF pas directement supporté comme clé intermédiaire dans tous les browsers
-    // On dérive directement AES-GCM qui est la méthode WebCrypto standard
-    const rawSecret=await crypto.subtle.deriveKey(
+  async deriv(myPrivKey,theirPubKey){
+    return crypto.subtle.deriveKey(
       {name:'ECDH',public:theirPubKey},myPrivKey,
       {name:'AES-GCM',length:256},false,['encrypt','decrypt']
     );
-    return rawSecret;
   },
 
   // ── Chiffrement AES-GCM 256 bits ─────────────────────────
@@ -2003,8 +2059,15 @@ async function loadMoreTx(){
 async function decryptMsgs(){
   A.msgs=[];
   for(const m of A.raw||[]){
-    let txt='🔒 Message chiffré';
-    if(A.sharedKey&&m.ciphertext&&m.iv){const d=await E2E.dec({ct:m.ciphertext,iv:m.iv},A.sharedKey);if(d)txt=d;}
+    let txt=null;
+    if(m.media_type){
+      // Message media — pas de déchiffrement texte, contenu chargé à la demande
+    } else if(A.sharedKey&&m.ciphertext&&m.iv){
+      const d=await E2E.dec({ct:m.ciphertext,iv:m.iv},A.sharedKey);
+      txt=d||'🔒 Message chiffré';
+    } else {
+      txt='🔒 Message chiffré';
+    }
     A.msgs.push({...m,txt});
   }
 }
@@ -2052,10 +2115,14 @@ function setupRT(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'couple_id=eq.'+cid},async p=>{
       // Eviter doublon si on est l'expéditeur (déjà dans A.msgs via optimistic update)
       if(A.msgs.find(x=>x.id===p.new.id))return;
-      let txt='🔒 Message chiffré';
-      if(A.sharedKey&&p.new.ciphertext&&p.new.iv){
+      let txt=null;
+      if(p.new.media_type){
+        // Message media — contenu chargé à la demande
+      } else if(A.sharedKey&&p.new.ciphertext&&p.new.iv){
         const d=await E2E.dec({ct:p.new.ciphertext,iv:p.new.iv},A.sharedKey);
-        if(d)txt=d;
+        txt=d||'🔒 Message chiffré';
+      } else {
+        txt='🔒 Message chiffré';
       }
       A.msgs.push({...p.new,txt});
       if(p.new.sender_id!==A.user.id&&!isP('chat')){A.unread++;updBadge();}
@@ -3195,16 +3262,21 @@ function getMealIngr(mon){
   return[...ingr];
 }
 async function addIngrToShop(){
+  if(!A.couple||!A.user){toast('Session expirée. Rechargez la page.','error');return;}
   const mon=getMon(new Date(),A.wkOff);const ingr=getMealIngr(mon);
-  // ✅ Normalisation : minuscules + NFD pour ignorer les accents lors de la comparaison
-  const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(!ingr.length){toast('Aucun ingrédient dans les repas de la semaine.','info');return;}
+  const norm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
   const existing=new Set(A.shop.map(i=>norm(i.name)));
   const toAdd=ingr.filter(n=>!existing.has(norm(n)));
   if(!toAdd.length){toast('Tous les ingrédients sont déjà dans la liste !','info');return;}
-  const{error}=await sb.from('shopping_items').insert(toAdd.map(name=>({name,qty:'1',category:'epicerie',couple_id:A.couple.id,added_by:A.user.id})));
-  if(error){toast('Erreur','error');return;}
+  const{data,error}=await sb.from('shopping_items')
+    .insert(toAdd.map(name=>({name,qty:'1',category:'epicerie',couple_id:A.couple.id,added_by:A.user.id})))
+    .select();
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  if(data)data.forEach(item=>{if(!A.shop.find(x=>x.id===item.id))A.shop.push(item);});
+  renderShop();
   toast(toAdd.length+' ingrédient'+(toAdd.length>1?'s':'')+' ajouté'+(toAdd.length>1?'s':'')+' !','success');
-  showPage('shop',document.getElementById('n-sh'));closeMoreMenu();
+  showPage('shop',document.getElementById('n-sh'));
 }
 
 /* ═══ CHAT E2E ═══ */
@@ -3264,9 +3336,10 @@ function renderMsgs(){
     const time=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     // ✅ Confirmation de lecture : ✓ = envoyé, ✓✓ = vu (partenaire a ouvert le chat)
     const readStatus=isMe?(A._partnerSeenAt&&new Date(A._partnerSeenAt)>new Date(msg.created_at)?'<span style="color:rgba(255,255,255,.9);font-size:10px" title="Lu">✓✓</span>':'<span style="color:rgba(255,255,255,.5);font-size:10px" title="Envoyé">✓</span>'):'';
+    const msgContent=msg.media_type?_renderMediaBubble(msg,isMe,col):('<div class="msg-bb" style="'+(isMe?'background:'+col+';box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)':'')+'">'+esc(msg.txt||'')+'</div>');
     div.innerHTML='<div class="msg-av" style="background:'+col+'22;color:'+col+'">'+(sender?.username||'?')[0].toUpperCase()+'</div>'
       +'<div>'+(!isMe?'<div class="msg-sn">'+esc(sender?.username||'')+'</div>':'')
-      +'<div class="msg-bb" style="'+(isMe?'background:'+col+';box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)':'')+'">'+esc(msg.txt)+'</div>'
+      +msgContent
       +'<div class="msg-mt"><span>'+time+'</span><span class="e2e">🔒 chiffré</span>'+readStatus+(msg.expires_at?'<span style="color:var(--orange);font-size:9px">⏱</span>':'')+'</div></div>';
     wrap.appendChild(div);
   });
@@ -3335,6 +3408,297 @@ async function sendMsg(){
 }
 function chKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function chResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+
+/* ═══ CHAT MEDIA ═══ */
+
+const _mediaCache=new Map();
+const _audioPlayers=new Map();
+const _msgMeta=new Map(); // msgId → {url, iv, name, type}
+
+// Chiffrement fichier ArrayBuffer → {iv, encrypted}
+async function _encFile(buffer){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:128},A.sharedKey,buffer);
+  return{iv:b64e(iv),encrypted:new Uint8Array(enc)};
+}
+
+// Déchiffrement fichier
+async function _decFile(encBuffer,ivB64){
+  const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));
+  return crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},A.sharedKey,encBuffer);
+}
+
+// Upload vers R2 via presigned URL (Supabase Edge Function)
+async function _uploadMedia(file){
+  const{data,error}=await sb.functions.invoke('get-upload-url',{body:{mediaType:file.type}});
+  if(error||!data?.uploadUrl)throw new Error(error?.message||'Erreur presigned URL');
+  const buffer=await file.arrayBuffer();
+  const{iv,encrypted}=await _encFile(buffer);
+  const res=await fetch(data.uploadUrl,{method:'PUT',body:encrypted,headers:{'Content-Type':'application/octet-stream'}});
+  if(!res.ok)throw new Error('Erreur upload R2: '+res.status);
+  return{key:data.key,iv};
+}
+
+// Download + déchiffrement depuis R2
+async function _downloadMedia(mediaUrl,iv){
+  if(_mediaCache.has(mediaUrl))return _mediaCache.get(mediaUrl);
+  const{data,error}=await sb.functions.invoke('get-download-url',{body:{key:mediaUrl}});
+  if(error||!data?.downloadUrl)return null;
+  const res=await fetch(data.downloadUrl);
+  if(!res.ok)return null;
+  const encBuffer=await res.arrayBuffer();
+  const plain=await _decFile(encBuffer,iv);
+  const url=URL.createObjectURL(new Blob([plain]));
+  _mediaCache.set(mediaUrl,url);
+  return url;
+}
+
+// Compression image (canvas → JPEG)
+async function _compressImage(file,maxPx=1920,quality=0.82){
+  return new Promise(resolve=>{
+    const img=new Image();
+    const u=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(u);
+      let w=img.width,h=img.height;
+      if(w>maxPx||h>maxPx){const r=Math.min(maxPx/w,maxPx/h);w=Math.round(w*r);h=Math.round(h*r);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b=>resolve(b||file),'image/jpeg',quality);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(u);resolve(file);};
+    img.src=u;
+  });
+}
+
+// Envoi message media
+async function sendMediaMsg(file,mediaType,mediaDuration){
+  if(!A.sharedKey){toast('Chat chiffré non disponible.','error');return;}
+  if(!A.couple||!A.user){toast('Session expirée.','error');return;}
+  const MAX=100*1024*1024;
+  if(file.size>MAX){toast('Fichier trop grand (max 100MB).','error');return;}
+  let upload=file;
+  if(mediaType==='image')upload=await _compressImage(file);
+  const tmpId='tmp-'+Date.now();
+  const optimistic={id:tmpId,couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv:'',version:2,
+    media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null,media_url:null,
+    created_at:new Date().toISOString(),_uploading:true,txt:null};
+  A.msgs.push(optimistic);renderMsgs();
+  try{
+    const{key,iv}=await _uploadMedia(upload);
+    const payload={couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv,version:2,
+      media_url:key,media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null};
+    if(_eph)payload.expires_at=new Date(Date.now()+86400000).toISOString();
+    const{error}=await sb.from('messages').insert(payload);
+    if(error)throw new Error(error.message);
+    A.msgs=A.msgs.filter(m=>m.id!==tmpId);renderMsgs();
+  }catch(e){
+    A.msgs=A.msgs.filter(m=>m.id!==tmpId);renderMsgs();
+    toast('Erreur envoi: '+e.message,'error');
+  }
+}
+
+// Rendu bulle media
+function _renderMediaBubble(msg,isMe,col){
+  const id=msg.id,url=msg.media_url||'',iv=msg.iv||'',up=msg._uploading;
+  const cs=isMe?'box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)':'';
+  // Stocker metadata pour éviter escaping de noms de fichiers dans onclick
+  if(url)_msgMeta.set(id,{url,iv,name:msg.media_name||'fichier',type:msg.media_type});
+  if(msg.media_type==='audio'){
+    const secs=msg.media_duration||0;
+    const dur=Math.floor(secs/60)+':'+(secs%60+'').padStart(2,'0');
+    return '<div class="msg-audio'+(up?' msg-sending':'')+'">'+
+      '<button class="msg-audio-btn" onclick="_playAudioById(\''+id+'\')" id="abtn-'+id+'">▶</button>'+
+      '<div class="msg-audio-track">'+
+        '<div class="msg-audio-bar" onclick="_seekAudio(event,\''+id+'\')"><div class="msg-audio-prog" id="apr-'+id+'"></div></div>'+
+        '<span class="msg-audio-dur" id="adur-'+id+'">'+dur+'</span>'+
+      '</div></div>';
+  }
+  if(msg.media_type==='image'||msg.media_type==='video'){
+    const t=msg.media_type;
+    const cached=url&&_mediaCache.has(url)?_mediaCache.get(url):null;
+    const ph=t==='video'?'🎬':'🖼';
+    const inner=cached?(t==='image'?'<img src="'+cached+'" alt="" loading="lazy">':'<video src="'+cached+'" playsinline muted>')
+      :'<div class="msg-img-ph" id="mimg-'+id+'">'+(up?'📤':ph)+'</div>';
+    if(!cached&&url&&!up)setTimeout(()=>_loadImgThumb(id,url,iv,t),50);
+    return '<div class="msg-img-wrap'+(up?' msg-sending':'')+'"'+(up?'':' onclick="_viewMediaById(\''+id+'\')"')+' style="'+(isMe?'background:'+col:'background:var(--surface)')+'">'+inner+'</div>';
+  }
+  // fichier
+  const ext=(msg.media_name||'').split('.').pop().toLowerCase();
+  const icon=['pdf'].includes(ext)?'📕':['doc','docx'].includes(ext)?'📘':['xls','xlsx'].includes(ext)?'📗':['zip','rar','7z'].includes(ext)?'📦':'📄';
+  const sz=msg.media_size?(msg.media_size>1024*1024?(msg.media_size/1024/1024).toFixed(1)+'MB':Math.round(msg.media_size/1024)+'KB'):'';
+  return '<div class="msg-file'+(up?' msg-sending':'')+'"'+(up?'':' onclick="_dlFileById(\''+id+'\')"')+' style="'+(isMe?'background:'+col+';'+cs:'')+'">'+
+    '<span class="msg-file-icon">'+icon+'</span>'+
+    '<div class="msg-file-info"><div class="msg-file-name">'+esc(msg.media_name||'Fichier')+'</div><div class="msg-file-size">'+sz+'</div></div>'+
+    '<span style="font-size:18px">'+(up?'⏳':'⬇️')+'</span></div>';
+}
+
+// Charger thumbnail image/vidéo après rendu
+async function _loadImgThumb(msgId,mediaUrl,iv,type){
+  const ph=document.getElementById('mimg-'+msgId);if(!ph)return;
+  ph.textContent='⏳';
+  const objUrl=await _downloadMedia(mediaUrl,iv);
+  if(!objUrl){ph.textContent=type==='video'?'🎬':'🖼';return;}
+  const wrap=ph.parentElement;if(!wrap)return;
+  if(type==='image'){const img=document.createElement('img');img.src=objUrl;img.alt='';img.loading='lazy';wrap.replaceChild(img,ph);}
+  else{const v=document.createElement('video');v.src=objUrl;v.playsinline=true;v.muted=true;wrap.replaceChild(v,ph);}
+}
+
+// Lecteur audio (lookup metadata par ID — évite escaping de paramètres)
+async function _playAudioById(msgId){
+  const meta=_msgMeta.get(msgId);if(!meta)return;
+  const btn=document.getElementById('abtn-'+msgId);
+  const prog=document.getElementById('apr-'+msgId);
+  const dur=document.getElementById('adur-'+msgId);
+  if(_audioPlayers.has(msgId)){
+    const a=_audioPlayers.get(msgId);
+    if(a.paused){a.play();}else{a.pause();}
+    return;
+  }
+  if(btn)btn.textContent='⏳';
+  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  if(!objUrl){toast('Erreur chargement audio.','error');if(btn)btn.textContent='▶';return;}
+  const audio=new Audio(objUrl);
+  _audioPlayers.set(msgId,audio);
+  audio.ontimeupdate=()=>{
+    if(!audio.duration)return;
+    const p=(audio.currentTime/audio.duration)*100;
+    if(prog)prog.style.width=p+'%';
+    const rem=Math.ceil(audio.duration-audio.currentTime);
+    if(dur)dur.textContent=Math.floor(rem/60)+':'+(rem%60+'').padStart(2,'0');
+  };
+  audio.onended=()=>{if(btn)btn.textContent='▶';if(prog)prog.style.width='0%';};
+  audio.onplay=()=>{if(btn)btn.textContent='⏸';};
+  audio.onpause=()=>{if(btn)btn.textContent='▶';};
+  audio.play();
+}
+function _seekAudio(e,msgId){
+  const a=_audioPlayers.get(msgId);if(!a||!a.duration)return;
+  const bar=e.currentTarget;const r=bar.getBoundingClientRect();
+  a.currentTime=((e.clientX-r.left)/r.width)*a.duration;
+}
+
+// Plein écran image/vidéo
+async function _viewMediaById(msgId){
+  const meta=_msgMeta.get(msgId);if(!meta)return;
+  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  if(!objUrl){toast('Erreur chargement.','error');return;}
+  const ov=document.createElement('div');ov.className='ch-fullscreen-ov';
+  ov.onclick=()=>document.body.removeChild(ov);
+  if(meta.type==='image'){const img=document.createElement('img');img.src=objUrl;img.style.cssText='max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px;';ov.appendChild(img);}
+  else{const v=document.createElement('video');v.src=objUrl;v.controls=true;v.autoplay=true;v.style.cssText='max-width:95vw;max-height:90vh;border-radius:8px;';ov.appendChild(v);}
+  document.body.appendChild(ov);
+}
+
+// Télécharger fichier
+async function _dlFileById(msgId){
+  const meta=_msgMeta.get(msgId);if(!meta)return;
+  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  if(!objUrl){toast('Erreur téléchargement.','error');return;}
+  const a=document.createElement('a');a.href=objUrl;a.download=meta.name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// Menu pièce jointe
+function openAttachMenu(){
+  const m=document.getElementById('ch-att-menu');if(!m)return;
+  m.classList.toggle('on');
+}
+function closeAttachMenu(){document.getElementById('ch-att-menu')?.classList.remove('on');}
+function pickMedia(){closeAttachMenu();document.getElementById('ch-fi-media')?.click();}
+function pickFile(){closeAttachMenu();document.getElementById('ch-fi-file')?.click();}
+async function handleMediaPick(input){
+  const file=input.files?.[0];if(!file)return;input.value='';
+  const isVid=file.type.startsWith('video/');
+  if(isVid&&file.size>100*1024*1024){toast('Vidéo trop grande (max 100MB).','error');return;}
+  await sendMediaMsg(file,isVid?'video':'image');
+}
+async function handleFilePick(input){
+  const file=input.files?.[0];if(!file)return;input.value='';
+  if(file.size>100*1024*1024){toast('Fichier trop grand (max 100MB).','error');return;}
+  await sendMediaMsg(file,'file');
+}
+
+// Enregistrement vocal
+let _isRecording=false,_mediaRecorder=null,_recChunks=[],_recTimerInterval=null;
+let _recSeconds=0,_recStartX=0,_recCancelled=false;
+const _MAX_REC_SECS=300;
+
+function micPressStart(e){
+  if(!A.sharedKey){toast('Chat chiffré non disponible.','error');return;}
+  e.preventDefault();
+  _recStartX=e.clientX||e.touches?.[0]?.clientX||0;
+  _recCancelled=false;
+  try{document.getElementById('ch-mic-btn')?.setPointerCapture(e.pointerId);}catch(_){}
+  startRecording();
+}
+function micPressMove(e){
+  if(!_isRecording)return;
+  const dx=(e.clientX||0)-_recStartX;
+  const h=document.getElementById('ch-rec-hint');
+  if(h)h.style.color=dx<-40?'var(--red,#ef4444)':'var(--muted)';
+}
+function micPressEnd(e){
+  if(!_isRecording)return;
+  const dx=(e.clientX||0)-_recStartX;
+  if(dx<-60){cancelRecording();return;}
+  stopAndSendRecording();
+}
+function micPressCancel(){cancelRecording();}
+
+async function startRecording(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _recChunks=[];_recSeconds=0;_isRecording=true;
+    const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    _mediaRecorder=new MediaRecorder(stream,{mimeType:mime});
+    _mediaRecorder.ondataavailable=e=>{if(e.data.size>0)_recChunks.push(e.data);};
+    _mediaRecorder.start(100);
+    document.getElementById('ch-rec-bar')?.classList.add('on');
+    document.getElementById('ch-mic-btn')?.classList.add('rec');
+    _recTimerInterval=setInterval(()=>{
+      _recSeconds++;
+      const t=document.getElementById('ch-rec-time');
+      if(t)t.textContent=Math.floor(_recSeconds/60)+':'+((_recSeconds%60)+'').padStart(2,'0');
+      if(_recSeconds>=_MAX_REC_SECS)stopAndSendRecording();
+    },1000);
+  }catch(e){_isRecording=false;toast('Microphone inaccessible: '+e.message,'error');}
+}
+
+function _stopRecCleanup(){
+  clearInterval(_recTimerInterval);_isRecording=false;
+  _mediaRecorder?.stream?.getTracks().forEach(t=>t.stop());_mediaRecorder=null;
+  document.getElementById('ch-rec-bar')?.classList.remove('on');
+  document.getElementById('ch-mic-btn')?.classList.remove('rec');
+  const h=document.getElementById('ch-rec-hint');if(h)h.style.color='var(--muted)';
+}
+
+function cancelRecording(){
+  if(!_isRecording)return;
+  _recCancelled=true;
+  if(_mediaRecorder?.state!=='inactive')_mediaRecorder.stop();
+  _stopRecCleanup();_recChunks=[];
+  toast('Enregistrement annulé.','info');
+}
+
+function stopAndSendRecording(){
+  if(!_isRecording||!_mediaRecorder)return;
+  const secs=_recSeconds;
+  _mediaRecorder.onstop=async()=>{
+    if(_recCancelled)return;
+    const blob=new Blob(_recChunks,{type:'audio/webm'});_recChunks=[];
+    if(blob.size<200){toast('Enregistrement trop court.','info');return;}
+    const file=new File([blob],'voice-'+Date.now()+'.webm',{type:'audio/webm'});
+    await sendMediaMsg(file,'audio',secs);
+  };
+  if(_mediaRecorder.state!=='inactive')_mediaRecorder.stop();
+  _stopRecCleanup();
+}
+
+// Fermer menu pièce jointe au clic extérieur
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ch-att-menu')&&!e.target.closest('#ch-att-btn'))closeAttachMenu();
+});
 function updBadge(){
   const b=document.getElementById('ch-bd');if(b){b.style.display=A.unread>0?'block':'none';b.textContent=A.unread>0?A.unread:'';}
   const nb=document.getElementById('nd-ch-bd');if(nb){nb.className='nd-badge'+(A.unread>0?' show':'');nb.textContent=A.unread>0?A.unread:'';}

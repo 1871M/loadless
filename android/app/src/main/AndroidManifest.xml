@@ -11,6 +11,10 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
+    <!-- Vocaux chat E2E -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Aucune permission GAFAM : pas de ACCESS_FINE_LOCATION, CAMERA,
          READ_CONTACTS, READ_PHONE_STATE, RECEIVE_BOOT_COMPLETED, etc. -->
