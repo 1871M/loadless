@@ -61,6 +61,15 @@ jobs:
           cp /tmp/android-custom/app/src/main/res/xml/network_security_config.xml \
             android/app/src/main/res/xml/network_security_config.xml
 
+      - name: Prepare webDir
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp manifest.json www/ 2>/dev/null || true
+          cp sw.js www/ 2>/dev/null || true
+          [ -d assets ] && cp -r assets www/ || true
+          [ -f privacy_policy.html ] && cp privacy_policy.html www/ || true
+
       - name: Sync Capacitor
         run: npx cap sync android
 

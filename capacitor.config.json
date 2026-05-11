@@ -1,7 +1,7 @@
 {
   "appId": "fr.loadless.app",
   "appName": "LoadLess",
-  "webDir": ".",
+  "webDir": "www",
   "server": {
     "androidScheme": "https"
   },
