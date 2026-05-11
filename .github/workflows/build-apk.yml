@@ -73,9 +73,17 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Decode keystore
+      - name: Decode and verify keystore
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > loadless-release.keystore
+          printf '%s' "$KS_B64" | base64 -d > loadless-release.keystore
+          echo "Keystore size: $(wc -c < loadless-release.keystore) bytes"
+          keytool -list -keystore loadless-release.keystore \
+            -storepass "$STORE_PASS" -noprompt \
+            && echo "✅ Keystore OK" \
+            || { echo "❌ Keystore invalide ou mot de passe incorrect"; exit 1; }
 
       - name: Build release APK
         env:
