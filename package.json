@@ -1,8 +1,8 @@
 {
   "name": "loadless",
-  "version": "4.2.0",
+  "version": "4.4.0",
   "private": true,
-  "description": "LoadLess — Gérez votre foyer en équité",
+  "description": "Loadless — Gérez votre foyer en équité",
   "scripts": {
     "cap:init": "npx cap init LoadLess fr.loadless.app --web-dir .",
     "cap:add:android": "npx cap add android",

@@ -416,7 +416,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .dash{padding:12px 16px 0;}
 .widgets{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 0 12px;margin-top:4px;}
 .w.wide{grid-column:span 2;}
-.w-ic{font-size:22px;margin-bottom:10px;opacity:.85;}
+.w-ic{width:32px;height:32px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-bottom:10px;flex-shrink:0;}
 .w-lb{font-family:'Fraunces','Display',Georgia,serif;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px;opacity:.75;}
 .w-vl{font-family:'Fraunces','Display',Georgia,serif;font-size:28px;font-weight:700;line-height:1;color:var(--ink);}
 .w.wp1 .w-vl{color:var(--p1d);}
@@ -559,23 +559,24 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .sh-ar{display:flex;gap:8px;margin-bottom:14px;}
 .sh-in{
   flex:1;
-  background:var(--surface);border:none;
+  background:var(--surface);border:1.5px solid var(--border2);
   border-radius:var(--r);padding:12px 14px;
   font-family:'Inter','UI',sans-serif;font-size:13px;color:var(--ink);outline:none;
-  box-shadow:inset 0 2px 8px rgba(0,0,0,.08),inset 0 1px 3px rgba(0,0,0,.05);
-  transition:box-shadow .2s;
+  transition:border-color .2s,box-shadow .2s;
 }
-.sh-in:focus{box-shadow:inset 0 3px 10px rgba(0,0,0,.1),0 0 0 3px rgba(165,180,252,.2);}
-.sh-qt{width:58px;background:var(--surface);border:none;border-radius:var(--r);padding:12px 8px;font-family:'Inter','UI',sans-serif;font-size:12px;color:var(--ink);outline:none;box-shadow:inset 0 2px 6px rgba(0,0,0,.07);}
-.sh-ct{background:var(--surface);border:none;border-radius:var(--r);padding:12px 8px;font-family:'Inter','UI',sans-serif;font-size:11px;color:var(--ink);outline:none;box-shadow:inset 0 2px 6px rgba(0,0,0,.07);}
+.sh-in:focus{border-color:var(--p1m);box-shadow:0 0 0 3px rgba(111,99,217,.10);}
+.sh-qt{width:58px;background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--r);padding:12px 8px;font-family:'Inter','UI',sans-serif;font-size:12px;color:var(--ink);outline:none;transition:border-color .2s;}
+.sh-qt:focus{border-color:var(--p1m);}
+.sh-ct{background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--r);padding:12px 8px;font-family:'Inter','UI',sans-serif;font-size:11px;color:var(--ink);outline:none;transition:border-color .2s;cursor:pointer;}
 .btn-sm{
-  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.5) 0%,var(--p1) 70%);
-  color:var(--ink);border:none;border-radius:var(--r);
-  padding:12px 14px;font-family:'Inter','UI',sans-serif;font-size:12px;font-weight:800;
-  cursor:pointer;box-shadow:var(--sh-3d);
-  transition:transform .2s var(--ease-spring);
+  background:var(--p1d);
+  color:#fff;border:none;border-radius:var(--r);
+  padding:12px 16px;font-family:'Inter','UI',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow:0 4px 12px rgba(91,78,192,.28);
+  transition:all .2s var(--ease-spring);white-space:nowrap;
 }
-.btn-sm:hover{transform:scale(1.04);}
+.btn-sm:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(91,78,192,.38);}
+.btn-sm:active{transform:scale(.97);}
 .sh-prog{background:var(--surface);border:none;box-shadow:var(--sh-3d);border-radius:var(--r-lg);padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
 .sh-pct{font-size:28px;font-weight:800;color:var(--green);min-width:52px;}
 .sh-inf{flex:1;}
@@ -2207,23 +2208,27 @@ function renderHome(){
     <div class="home-section-hd"><span class="home-section-title">Raccourcis</span></div>
     <div class="widgets">
       <div class="w wp1" onclick="showPage('tasks',document.getElementById('n-tk'));closeMoreMenu()">
-        <div class="w-lb">✅ Tâches</div>
+        <div class="w-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--p1d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="w-lb">Tâches</div>
         <div class="w-vl">${myT}</div>
         <div class="w-sb">${free} libre${free>1?'s':''}</div>
       </div>
       <div class="w wp2" onclick="showPage('shop',document.getElementById('n-sh'));closeMoreMenu()">
-        <div class="w-lb">🛒 Courses</div>
+        <div class="w-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--p2m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+        <div class="w-lb">Courses</div>
         <div class="w-vl">${shopTodo}</div>
         <div class="w-sb">${shopPct}% fait</div>
         <div class="w-bw"><div class="w-bf" style="width:${shopPct}%;background:linear-gradient(90deg,var(--p2),var(--p2m))"></div></div>
       </div>
       <div class="w wgo" onclick="showPage('budget',document.getElementById('n-bg'));closeMoreMenu()">
-        <div class="w-lb">💳 Budget</div>
+        <div class="w-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--goldm)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <div class="w-lb">Budget</div>
         <div class="w-vl">${fmtE(totalBal)}</div>
         <div class="w-sb">−${fmtE(mExp)} ce mois</div>
       </div>
       <div class="w wp1" onclick="showPage('equity',document.getElementById('n-st'));closeMoreMenu()">
-        <div class="w-lb">⚖️ Équité</div>
+        <div class="w-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--p1d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="w-lb">Équité</div>
         <div class="w-vl">${pct1}%</div>
         <div class="w-sb">${eq&&eq.gap<=8?'Équilibré':'Déséquilibre'}</div>
       </div>
@@ -3700,7 +3705,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.3 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.4 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     +'<div style="text-align:center;padding:12px 16px 28px"><a href="https://github.com/1871M/loadless/releases/latest" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:12px;font-size:13px;font-weight:700;color:var(--p1d);text-decoration:none">📱 Télécharger l\'APK</a></div>'
