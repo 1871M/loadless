@@ -91,15 +91,18 @@ jobs:
           )
           for DIR in "${!SIZES[@]}"; do
             SIZE=${SIZES[$DIR]}
+            # Réduit à 90% + centre sur fond blanc pour éviter le rognage du launcher
+            INNER=$((SIZE*90/100))
             mkdir -p "$RES/$DIR"
-            convert "$SRC" -resize ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher.png"
-            convert "$SRC" -resize ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher_round.png"
-            echo "✅ $RES/$DIR/ic_launcher.png (${SIZE}px)"
+            convert "$SRC" -resize ${INNER}x${INNER} -gravity center -background white -extent ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher.png"
+            convert "$SRC" -resize ${INNER}x${INNER} -gravity center -background white -extent ${SIZE}x${SIZE} "$RES/$DIR/ic_launcher_round.png"
+            echo "✅ $RES/$DIR/ic_launcher.png (${SIZE}px, inner ${INNER}px)"
           done
-          # Adaptive icon foreground (432px — centré sur fond transparent)
+          # Adaptive icon foreground : logo à 66% du canvas (safe zone Android)
+          # 432 × 0.66 = ~285px — garantit que le logo reste visible quel que soit le masque (cercle, squircle…)
           mkdir -p "$RES/mipmap-anydpi-v26"
-          convert "$SRC" -resize 432x432 "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
-          echo "✅ Adaptive foreground injected"
+          convert "$SRC" -resize 285x285 -gravity center -background white -extent 432x432 "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
+          echo "✅ Adaptive foreground injected (285px dans 432px safe zone)"
 
       - name: Prepare webDir
         run: |
