@@ -40,6 +40,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install rsvg-convert (SVG→PNG)
+        run: sudo apt-get install -y librsvg2-bin
+
+      - name: Generate app icons from SVG
+        run: |
+          SVG=assets/icon.svg
+          # Web PWA icons
+          mkdir -p icons
+          for SIZE in 72 96 128 144 152 192 384 512; do
+            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "icons/icon-${SIZE}.png"
+            echo "✅ icons/icon-${SIZE}.png"
+          done
+          # Keep logo.png in sync (used by loader)
+          rsvg-convert -w 192 -h 192 "$SVG" -o "assets/logo.png"
+          echo "✅ assets/logo.png"
+
       - name: Add Android platform
         run: |
           # Sauvegarde des fichiers custom trackés dans git
@@ -60,6 +76,30 @@ jobs:
             android/app/src/main/res/xml/file_paths.xml
           cp /tmp/android-custom/app/src/main/res/xml/network_security_config.xml \
             android/app/src/main/res/xml/network_security_config.xml
+
+      - name: Inject custom launcher icons into Android
+        run: |
+          SVG=assets/icon.svg
+          RES=android/app/src/main/res
+          # Standard mipmap sizes
+          declare -A SIZES=(
+            [mipmap-mdpi]=48
+            [mipmap-hdpi]=72
+            [mipmap-xhdpi]=96
+            [mipmap-xxhdpi]=144
+            [mipmap-xxxhdpi]=192
+          )
+          for DIR in "${!SIZES[@]}"; do
+            SIZE=${SIZES[$DIR]}
+            mkdir -p "$RES/$DIR"
+            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "$RES/$DIR/ic_launcher.png"
+            rsvg-convert -w $SIZE -h $SIZE "$SVG" -o "$RES/$DIR/ic_launcher_round.png"
+            echo "✅ $RES/$DIR/ic_launcher.png (${SIZE}px)"
+          done
+          # Adaptive icon foreground (108dp safe zone = 432/1024 of image)
+          mkdir -p "$RES/mipmap-anydpi-v26"
+          rsvg-convert -w 432 -h 432 "$SVG" -o "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
+          echo "✅ Adaptive foreground injected"
 
       - name: Prepare webDir
         run: |
@@ -84,7 +124,7 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$STORE_PASS" \
             -keypass "$KEY_PASS" \
-            -dname "CN=LoadLess, OU=LoadLess, O=LoadLess, L=Local, ST=Local, C=FR" \
+            -dname "CN=Loadless, OU=Loadless, O=Loadless, L=Local, ST=Local, C=FR" \
             -noprompt
           echo "✅ Keystore généré : $(wc -c < loadless-release.keystore) octets"
 
@@ -115,9 +155,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-build${{ github.run_number }}
-          name: LoadLess v${{ env.VERSION }} (build ${{ github.run_number }})
+          name: Loadless v${{ env.VERSION }} (build ${{ github.run_number }})
           body: |
-            ## LoadLess v${{ env.VERSION }}
+            ## Loadless v${{ env.VERSION }}
 
             ### Installation Android
             1. Téléchargez `loadless-v${{ env.VERSION }}.apk`
