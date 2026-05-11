@@ -2152,6 +2152,8 @@ function renderHome(){
   // Update fixed header greeting
   const greetEl=document.getElementById('hdr-greet-title');
   if(greetEl)greetEl.innerHTML=`${greet}, ${esc(me?.username||'vous')} 👋`;
+  const subEl=document.getElementById('hdr-greet-sub');
+  if(subEl){const d=today.getDate(),m=MON[today.getMonth()];subEl.textContent=DAY[(today.getDay()+6)%7]+' '+d+' '+m;}
 
   const budgetPct=totalBal>0?Math.min(100,Math.round((totalBal/(totalBal+mExp))*100)):0;
   const gaugeR=52;const gaugeCirc=2*Math.PI*gaugeR;
