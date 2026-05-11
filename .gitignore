@@ -9,3 +9,7 @@ node_modules/
 npm-debug.log*
 *.bak
 *.tmp
+config.json
+*.keystore
+android/app/keystore.properties
+.claude/

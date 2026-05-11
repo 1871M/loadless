@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Accès fichiers internes (sauvegardes .llbk) -->
+    <files-path name="files" path="." />
+    <!-- Accès stockage externe (téléchargements) -->
+    <external-files-path name="external_files" path="." />
+    <!-- Cache applicatif -->
+    <cache-path name="cache" path="." />
+</paths>

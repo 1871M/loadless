@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="LoadLess">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co; img-src 'self' data: blob:; font-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
@@ -29,8 +29,8 @@
   font-weight: 300 800;
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="/assets/lib/supabase.min.js" integrity="sha256-U5uxwocnDRuaZGtKt6u8XeZ/GXMsR570wzovGIyeSlw=" crossorigin="anonymous"></script>
+<script src="/assets/lib/qrcode.min.js" integrity="sha256-uyNl5JAvT4SFLPQCXm9qYDJaaCrq+kP7Y7f8jwmNHvI=" crossorigin="anonymous"></script>
 <style>
 :root{
   /* Palette Toy-Style 3D CGI */
@@ -52,6 +52,23 @@
   --ease:cubic-bezier(.4,0,.2,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
 }
+:root.dark{
+  --bg:#0F172A;--surface:#1E293B;--border:rgba(255,255,255,0.0);--border2:rgba(255,255,255,0.08);
+  --ink:#E2E8F0;--muted:#94A3B8;--faint:#475569;
+  --p1b:#1E1B4B;--p1m:#312E81;
+  --p2b:#042F2E;--p2m:#134E4A;
+  --goldb:#1C1708;--goldm:#713F12;
+  --redb:#1C0505;--redm:#7F1D1D;
+  --greenb:#052E16;
+  --orangeb:#1C0A00;
+  --sh:0 4px 16px rgba(0,0,0,0.30),0 1px 4px rgba(0,0,0,0.20);
+  --sh-md:0 8px 32px rgba(0,0,0,0.40),0 2px 8px rgba(0,0,0,0.20);
+  --sh-lg:0 20px 60px rgba(0,0,0,0.50),0 4px 16px rgba(0,0,0,0.30);
+  --sh-3d:0 10px 20px rgba(0,0,0,0.30),inset 0 -4px 0 rgba(0,0,0,0.30);
+  --sh-glow:0 0 0 4px rgba(129,140,248,.30);
+}
+:root.dark .skeleton{background:linear-gradient(90deg,#1E293B 25%,#263244 50%,#1E293B 75%);background-size:200% 100%;}
+:root.dark .toast{background:#1E293B;color:#E2E8F0;border:1px solid rgba(255,255,255,0.08);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;font-family:'Outfit','Inter','Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
@@ -74,6 +91,11 @@ html,body{height:100%;font-family:'Outfit','Inter','Segoe UI','Helvetica Neue',A
 @keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear;border-radius:12px;flex-shrink:0}
+.sk-card{height:80px;margin:0 16px 12px;border-radius:16px}
+.sk-line{height:14px;margin:0 16px 10px}
+.sk-line-sm{height:10px;margin:0 16px 8px;width:60%}
+.sk-wrap{padding:16px 0}
 
 /* ── LOGO PREMIUM ── */
 .ll-wordmark{font-family:Georgia,'Times New Roman',serif;font-weight:700;letter-spacing:-.02em;}
@@ -316,7 +338,8 @@ html,body{height:100%;font-family:'Outfit','Inter','Segoe UI','Helvetica Neue',A
 }
 .hdr-add:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 14px 28px rgba(0,0,0,.08),inset 0 -4px 0 rgba(0,0,0,.06);}
 .page{display:none;flex:1;overflow-y:auto;padding-bottom:100px;}
-.page.active{display:block;}
+.page.active{display:block;animation:slideUp .18s var(--ease) both;}
+@media (prefers-reduced-motion:reduce){.page.active{animation:none;}}
 
 /* BOTTOM NAV — floating pill panel */
 .bot-nav{
@@ -831,7 +854,7 @@ html.large-text{font-size:115%;}
 .btn-sv:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(129,140,248,.4),0 6px 16px rgba(165,180,252,.2);}
 </style>
 </head>
-<body role="application" aria-label="LoadLess — Gestion du foyer"><div id="toast-wrap"></div>
+<body role="application" aria-label="LoadLess — Gestion du foyer"><div id="toast-wrap" aria-live="polite" aria-atomic="false"></div>
 <div id="loader"><div class="ll-logo">Load<span>Less</span></div><div class="spin"></div></div>
 
 <!-- AUTH -->
@@ -1132,9 +1155,9 @@ html.large-text{font-size:115%;}
 </div>
 </div>
 <script>
-const SURL='https://lalpmkyxzapiheadvckp.supabase.co';
-const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHBta3l4emFwaWhlYWR2Y2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzY5MTAsImV4cCI6MjA5MzQxMjkxMH0.18_Frxi23QLbtL1qQgV1MJ7MoU7751rJeCgnIkD35bI';
-const sb=supabase.createClient(SURL,SKEY);
+let SURL='https://lalpmkyxzapiheadvckp.supabase.co';
+let SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHBta3l4emFwaWhlYWR2Y2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzY5MTAsImV4cCI6MjA5MzQxMjkxMH0.18_Frxi23QLbtL1qQgV1MJ7MoU7751rJeCgnIkD35bI';
+let sb;
 
 // ══════════════════════════════════════════════════════════
 //  LL — Logger structuré LoadLess
@@ -1450,7 +1473,9 @@ const DAY=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 function toast(msg,type='info',dur=3000){
   const w=document.getElementById('toast-wrap');
   const t=document.createElement('div');t.className='toast '+type;
-  t.innerHTML='<span>'+(type==='success'?'✓':type==='error'?'✕':'ℹ')+'</span><span>'+msg+'</span>';
+  const ic=document.createElement('span');ic.textContent=(type==='success'?'✓':type==='error'?'✕':'ℹ');
+  const tx=document.createElement('span');tx.textContent=msg;
+  t.appendChild(ic);t.appendChild(tx);
   w.appendChild(t);setTimeout(()=>t.style.opacity='0',dur-300);setTimeout(()=>t.remove(),dur);
 }
 
@@ -1994,27 +2019,37 @@ function setupRT(){
 
 /* ═══ PAGE ROUTING ═══ */
 function isP(n){return document.getElementById('p-'+n)?.classList.contains('active');}
-function showPage(name,btn){
+function _skCards(n){return Array.from({length:n},()=>'<div class="sk-card skeleton"></div>').join('')+'<div class="sk-line skeleton"></div><div class="sk-line-sm skeleton"></div>';}
+function initSkeletons(){
+  const pages={home:'p-home',tasks:'p-tasks',shop:'p-shop',budget:'p-budget',chat:'p-chat'};
+  for(const id of Object.values(pages)){
+    const el=document.getElementById(id);
+    if(el&&!el.children.length){el.innerHTML='<div class="sk-wrap">'+_skCards(3)+'</div>';}
+  }
+}
+function showPage(name,btn,_noPush){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-it').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-'+name)?.classList.add('active');
-  // ✅ Pour les modules dans le menu "Plus", activer visuellement le bouton "Plus"
   const inMoreMenu=['shop','meals','equity','settings'];
   let activeBtn=btn;
-  if(inMoreMenu.includes(name)){
-    activeBtn=document.getElementById('n-more');
-  }
+  if(inMoreMenu.includes(name))activeBtn=document.getElementById('n-more');
   if(activeBtn)activeBtn.classList.add('active');
-  closeMoreMenu(); // toujours fermer le menu Plus à la navigation
+  closeMoreMenu();
   const map={home:renderHome,tasks:renderTasks,shop:renderShop,budget:renderBudget,meals:renderMeals,calendar:async()=>{await loadCalEvents();renderCalendar();},equity:renderEquity,settings:renderSettings};
   if(name==='chat'){A.unread=0;updBadge();renderMsgs();}
   else if(map[name])map[name]();
-  // ✅ FAB caché sur accueil et écrans sans ajout pertinent
   const fab=document.getElementById('fab-btn');
   if(fab)fab.style.display=(name==='home'||name==='chat'||name==='equity'||name==='settings')?'none':'flex';
-  // Scroll up
   document.getElementById('p-'+name)?.scrollTo({top:0});
+  if(!_noPush&&history.state?.page!==name){
+    history.pushState({page:name},'','?page='+name);
+  }
 }
+window.addEventListener('popstate',e=>{
+  const pg=e.state?.page||'home';
+  if(A.user&&A.couple)showPage(pg,null,true);
+});
 function quickAdd(){
   const a=document.querySelector('.page.active')?.id;
   if(a==='p-shop'){
@@ -2784,15 +2819,13 @@ async function saveTx(){
   });
   if(!error&&!data?.error){
     // Patch local immédiat — le RPC a inséré en DB, on l'affiche sans attendre realtime
-    const newTx={...pl,id:data?.id||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():'tmp-'+Date.now()),created_at:new Date().toISOString()};
+    const newTx={...pl,id:data?.transaction_id||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():'tmp-'+Date.now()),created_at:new Date().toISOString()};
     A.txs.unshift(newTx);
     closeM('mo-tx');toast('Enregistré !','success');renderBudget();_reloadTxs();return;
   }
-  // Fallback insert direct si le RPC n'existe pas
-  const res=await _directInsert(pl);
-  if(res.error){toast('Erreur: '+res.error.message,'error');return;}
-  if(res.data)A.txs.unshift(res.data);
-  closeM('mo-tx');toast('Enregistré !','success');renderBudget();_reloadTxs();
+  // RPC obligatoire — pas de fallback (bloqué par RLS tx_block_direct_insert)
+  const msg=error?.message||data?.message||'Erreur serveur.';
+  toast('Erreur: '+msg,'error');
 }
 
 async function delTx(id){
@@ -3528,13 +3561,20 @@ function renderSettings(){
 
     // ── SECTION 4 : PRÉFÉRENCES ──
     +'<div class="st-sc"><div class="st-st">⚙️ Préférences</div>'
+      +'<label class="st-tg-rw"><span class="st-ri">🌙</span><div class="st-rf"><div class="st-rt">Mode sombre</div><div class="st-rs">Thème foncé, effet 3D préservé</div></div><input type="checkbox" '+(prefs.darkMode?'checked':'')+' onchange="setPref(\'darkMode\',this.checked)" aria-label="Activer le mode sombre"></label>'
       +'<label class="st-tg-rw"><span class="st-ri">📳</span><div class="st-rf"><div class="st-rt">Vibrations</div><div class="st-rs">Retour haptique sur les actions</div></div><input type="checkbox" '+(hapt?'checked':'')+' onchange="setPref(\'haptics\',this.checked)" aria-label="Activer les vibrations"></label>'
       +'<label class="st-tg-rw"><span class="st-ri">🎬</span><div class="st-rf"><div class="st-rt">Réduire les animations</div><div class="st-rs">Pour le confort visuel ou les batteries</div></div><input type="checkbox" '+(reduceMotion?'checked':'')+' onchange="setPref(\'reduceMotion\',this.checked)" aria-label="Réduire les animations"></label>'
       +'<label class="st-tg-rw"><span class="st-ri">🔆</span><div class="st-rf"><div class="st-rt">Contraste élevé</div><div class="st-rs">Améliore la lisibilité</div></div><input type="checkbox" '+(highContrast?'checked':'')+' onchange="setPref(\'highContrast\',this.checked)" aria-label="Activer le mode contraste élevé"></label>'
       +'<label class="st-tg-rw"><span class="st-ri">🔠</span><div class="st-rf"><div class="st-rt">Texte agrandi</div><div class="st-rs">Tailles de police +15%</div></div><input type="checkbox" '+(largeText?'checked':'')+' onchange="setPref(\'largeText\',this.checked)" aria-label="Activer le texte agrandi"></label>'
     +'</div>'
 
-    // ── SECTION 5 : COMPTE ──
+    // ── SECTION 5 : SAUVEGARDE ──
+    +'<div class="st-sc"><div class="st-st">💾 Sauvegarde</div>'
+      +'<div class="st-rw" onclick="BackupManager.exportBackup()" role="button" tabindex="0"><span class="st-ri">📤</span><div class="st-rf"><div class="st-rt">Exporter la sauvegarde</div><div class="st-rs">Fichier chiffré AES-256 · protégé par mot de passe</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" onclick="BackupManager.importBackup()" role="button" tabindex="0"><span class="st-ri">📥</span><div class="st-rf"><div class="st-rt">Restaurer une sauvegarde</div><div class="st-rs">Fusionne les données par id</div></div><span class="st-ra">›</span></div>'
+    +'</div>'
+
+    // ── SECTION 6 : COMPTE ──
     +'<div class="st-sc"><div class="st-st">👤 Compte</div>'
       +'<div class="st-rw" onclick="doSignOut()" role="button" tabindex="0"><span class="st-ri">🚪</span><div class="st-rf"><div class="st-rt">Se déconnecter</div><div class="st-rs">'+esc(A.user?.email||'')+'</div></div><span class="st-ra">›</span></div>'
     +'</div>'
@@ -3569,6 +3609,7 @@ function applyPrefs(){
   document.documentElement.classList.toggle('reduce-motion',prefs.reduceMotion===true);
   document.documentElement.classList.toggle('high-contrast',prefs.highContrast===true);
   document.documentElement.classList.toggle('large-text',prefs.largeText===true);
+  document.documentElement.classList.toggle('dark',prefs.darkMode===true);
 }
 
 /* ═══ ÉDITION PROFIL ═══ */
@@ -3696,8 +3737,34 @@ function updatePill(){
   av.textContent=me.username[0].toUpperCase();av.style.background=col+'33';av.style.color=col;
   nm.textContent=me.username;nm.style.color=col;
 }
-function openM(id){document.getElementById(id).classList.add('open');}
-function closeM(id){document.getElementById(id).classList.remove('open');}
+function trapFocus(el){
+  const sel='button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  const nodes=()=>[...el.querySelectorAll(sel)];
+  el._trapH=e=>{
+    const focusable=nodes();if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.key==='Tab'){
+      if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+      else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+    }
+    if(e.key==='Escape'){closeM(el.id);}
+  };
+  el.addEventListener('keydown',el._trapH);
+  const focusable=nodes();if(focusable.length)focusable[0].focus();
+}
+function openM(id){
+  const el=document.getElementById(id);
+  el.classList.add('open');
+  el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  el._prevFocus=document.activeElement;
+  trapFocus(el);
+}
+function closeM(id){
+  const el=document.getElementById(id);
+  el.classList.remove('open');
+  if(el._trapH){el.removeEventListener('keydown',el._trapH);el._trapH=null;}
+  if(el._prevFocus){el._prevFocus.focus();el._prevFocus=null;}
+}
 function cMO(e,id){if(e.target===document.getElementById(id))closeM(id);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3711,6 +3778,14 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
 
 /* ═══ BOOT ═══ */
 (async function(){
+  // ✅ Chargement config externe (self-hosting : /config.json surcharge SURL/SKEY)
+  try{
+    const cfg=await fetch('/config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null);
+    if(cfg?.SURL)SURL=cfg.SURL;
+    if(cfg?.SKEY)SKEY=cfg.SKEY;
+  }catch{}
+  sb=supabase.createClient(SURL,SKEY);
+
   try{A.avail=JSON.parse(localStorage.getItem('ll-av')||'{}');}catch{}
 
   // ✅ Appliquer les préférences d'accessibilité au démarrage
@@ -3720,6 +3795,9 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
     document.documentElement.classList.toggle('high-contrast',prefs.highContrast===true);
     document.documentElement.classList.toggle('large-text',prefs.largeText===true);
   }catch{}
+
+  // ✅ Afficher les squelettes pendant le chargement
+  initSkeletons();
 
   // ✅ Gérer les raccourcis PWA (manifest shortcuts /?tab=tasks etc.)
   const _urlTab=new URLSearchParams(location.search).get('tab');
@@ -3991,6 +4069,93 @@ async function loadCalEvents(){
   (data||[]).forEach(ev=>map.set(ev.id,ev));
   A.calEvents=[...map.values()].sort((a,b)=>(a.event_date||'').localeCompare(b.event_date||'')||(a.event_time||'').localeCompare(b.event_time||''));
 }
+
+/* ═══ BACKUP MANAGER ═══ */
+const BackupManager={
+  async exportBackup(){
+    const pwd=await BackupManager._promptPwd('Choisissez un mot de passe pour chiffrer la sauvegarde :','Exporter');
+    if(!pwd)return;
+    try{
+      const payload={v:1,date:new Date().toISOString(),tasks:A.tasks||[],shop:A.shop||[],accounts:A.accounts||[],txs:A.txs||[],calEvents:A.calEvents||[],meals:A.meals||{}};
+      const salt=crypto.getRandomValues(new Uint8Array(16));
+      const iv=crypto.getRandomValues(new Uint8Array(12));
+      const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
+      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt']);
+      const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(payload)));
+      const file=JSON.stringify({v:1,salt:b64e(salt),iv:b64e(iv),data:b64e(new Uint8Array(enc))});
+      const blob=new Blob([file],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='loadless-backup-'+new Date().toISOString().slice(0,10)+'.llbk';a.click();URL.revokeObjectURL(url);
+      toast('Sauvegarde téléchargée !','success');
+    }catch(e){toast('Erreur export : '+e.message,'error');}
+  },
+  async importBackup(){
+    const file=await new Promise(resolve=>{const inp=document.createElement('input');inp.type='file';inp.accept='.llbk,application/json';inp.onchange=()=>resolve(inp.files[0]||null);inp.click();});
+    if(!file)return;
+    let envelope;
+    try{envelope=JSON.parse(await file.text());}catch{toast('Fichier invalide.','error');return;}
+    if(envelope.v!==1||!envelope.salt||!envelope.iv||!envelope.data){toast('Format non reconnu.','error');return;}
+    const pwd=await BackupManager._promptPwd('Mot de passe de la sauvegarde :','Déchiffrer');
+    if(!pwd)return;
+    let payload;
+    try{
+      const salt=Uint8Array.from(atob(envelope.salt),c=>c.charCodeAt(0));
+      const iv=Uint8Array.from(atob(envelope.iv),c=>c.charCodeAt(0));
+      const ct=Uint8Array.from(atob(envelope.data),c=>c.charCodeAt(0));
+      const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
+      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+      payload=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct)));
+    }catch{toast('Mot de passe incorrect ou fichier corrompu.','error');return;}
+    const counts=[(payload.tasks||[]).length+' tâches',(payload.shop||[]).length+' articles',(payload.accounts||[]).length+' comptes',(payload.txs||[]).length+' transactions',(payload.calEvents||[]).length+' événements'].join(', ');
+    if(!confirm('Restaurer : '+counts+' ?\n\nLes données existantes seront fusionnées (upsert par id).'))return;
+    const cid=A.couple.id;
+    const tables=[
+      {t:'tasks',d:(payload.tasks||[]).map(r=>({...r,couple_id:cid}))},
+      {t:'shopping_items',d:(payload.shop||[]).map(r=>({...r,couple_id:cid}))},
+      {t:'accounts',d:(payload.accounts||[]).map(r=>({...r,couple_id:cid}))},
+      {t:'transactions',d:(payload.txs||[]).map(r=>({...r,couple_id:cid}))},
+      {t:'calendar_events',d:(payload.calEvents||[]).map(r=>({...r,couple_id:cid}))},
+      {t:'meals',d:Object.values(payload.meals||{}).map(m=>({...m,couple_id:cid}))},
+    ];
+    let errs=0;
+    for(const{t,d}of tables){
+      if(!d.length)continue;
+      const{error}=await sb.from(t).upsert(d,{onConflict:'id'});
+      if(error){errs++;LL.log('error','backup','import_'+t,{msg:error.message});}
+    }
+    toast(errs?'Restauration partielle ('+errs+' erreur(s)).':'Restauration réussie !',errs?'error':'success');
+    if(!errs)await launchApp();
+  },
+  _promptPwd(msg,btnLabel){
+    return new Promise(resolve=>{
+      const ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)';
+      const box=document.createElement('div');
+      box.style.cssText='background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:var(--sh-lg)';
+      const title=document.createElement('div');title.style.cssText='font-family:Lora,serif;font-size:18px;font-weight:700;margin-bottom:8px';title.textContent='🔐 Sauvegarde';
+      const sub=document.createElement('div');sub.style.cssText='font-size:13px;color:var(--muted);margin-bottom:16px';sub.textContent=msg;
+      const inp=document.createElement('input');inp.type='password';inp.placeholder='Mot de passe…';inp.setAttribute('autocomplete','new-password');inp.style.cssText='width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box';
+      const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;margin-top:16px';
+      const bCx=document.createElement('button');bCx.style.cssText='flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:none;cursor:pointer;font-size:13px';bCx.textContent='Annuler';
+      const bOk=document.createElement('button');bOk.style.cssText='flex:1;padding:10px;background:var(--p1);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700';bOk.textContent=btnLabel;
+      row.appendChild(bCx);row.appendChild(bOk);box.appendChild(title);box.appendChild(sub);box.appendChild(inp);box.appendChild(row);ov.appendChild(box);document.body.appendChild(ov);
+      bCx.onclick=()=>{ov.remove();resolve(null);};
+      bOk.onclick=()=>{const v=inp.value;ov.remove();resolve(v||null);};
+      inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=inp.value;ov.remove();resolve(v||null);}});
+      setTimeout(()=>inp.focus(),50);
+    });
+  }
+};
+
+/* ═══ VERROUILLAGE D'INACTIVITÉ (5 min) ═══ */
+(function(){
+  const TIMEOUT=5*60*1000;
+  let _timer;
+  function _lock(){sb.auth.signOut().finally(()=>{showSc('s-auth');toast('Session verrouillée (inactivité).','info');});}
+  function _reset(){clearTimeout(_timer);_timer=setTimeout(_lock,TIMEOUT);}
+  ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,_reset,{passive:true}));
+  _reset();
+})();
 
 </script>
 <!-- MODAL CALENDRIER -->
