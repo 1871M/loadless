@@ -1,6 +1,6 @@
 {
   "appId": "fr.loadless.app",
-  "appName": "LoadLess",
+  "appName": "Loadless",
   "webDir": "www",
   "server": {
     "androidScheme": "https"
@@ -13,7 +13,7 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 0,
-      "backgroundColor": "#F6F3EE"
+      "backgroundColor": "#F7EDE2"
     }
   }
 }

@@ -6,14 +6,14 @@
 <meta name="theme-color" content="#F0F4F8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="LoadLess">
+<meta name="apple-mobile-web-app-title" content="Loadless">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
-<title>LoadLess</title>
+<title>Loadless</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,31 +47,35 @@
   --green:#66BB6A;--greenb:#F1F8F1;
   --orange:#FFA07A;--orangeb:#FFF3EE;
   --r:20px;--r-sm:14px;--r-lg:28px;--r-xl:36px;
-  --sh:0 2px 12px rgba(61,52,80,0.06),0 1px 4px rgba(61,52,80,0.04);
-  --sh-md:0 6px 24px rgba(61,52,80,0.08),0 2px 8px rgba(61,52,80,0.04);
-  --sh-lg:0 16px 48px rgba(61,52,80,0.10),0 4px 16px rgba(61,52,80,0.06);
-  --sh-3d:0 4px 16px rgba(61,52,80,0.08),0 1px 4px rgba(61,52,80,0.04);
+  --sh:0 2px 10px rgba(44,36,72,0.05),0 1px 3px rgba(44,36,72,0.034);
+  --sh-md:0 5px 20px rgba(44,36,72,0.068),0 2px 7px rgba(44,36,72,0.034);
+  --sh-lg:0 14px 40px rgba(44,36,72,0.085),0 3px 14px rgba(44,36,72,0.051);
+  --sh-3d:0 3px 14px rgba(44,36,72,0.068),0 1px 3px rgba(44,36,72,0.034);
   --sh-glow:0 0 0 4px rgba(155,142,196,.25);
   --ease:cubic-bezier(.4,0,.2,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
 }
 :root.dark{
-  --bg:#1A1625;--surface:#251F35;--border:rgba(255,255,255,0.0);--border2:rgba(255,255,255,0.08);
-  --ink:#EDE8F5;--muted:#A89EC4;--faint:#5C5275;
-  --p1b:#1E1B2E;--p1m:#2D2545;
-  --p2b:#2A1F1C;--p2m:#3D2820;
-  --goldb:#1C1A0A;--goldm:#4A3A00;
-  --redb:#1C0A0A;--redm:#4A1515;
-  --greenb:#0A1C0A;
-  --orangeb:#1C1008;
-  --sh:0 4px 16px rgba(0,0,0,0.30),0 1px 4px rgba(0,0,0,0.20);
-  --sh-md:0 8px 32px rgba(0,0,0,0.40),0 2px 8px rgba(0,0,0,0.20);
-  --sh-lg:0 20px 60px rgba(0,0,0,0.50),0 4px 16px rgba(0,0,0,0.30);
-  --sh-3d:0 4px 16px rgba(0,0,0,0.30),0 1px 4px rgba(0,0,0,0.20);
-  --sh-glow:0 0 0 4px rgba(155,142,196,.25);
+  --bg:#13111C;--surface:#1E1B2B;--border:rgba(255,255,255,0.0);--border2:rgba(255,255,255,0.09);
+  --ink:#F0EBF8;--muted:#9A8FBD;--faint:#4A4268;
+  --p1:#8B7FE8;--p1b:#221E3A;--p1m:#5049A8;--p1d:#A097F0;
+  --p2:#F2A38F;--p2b:#2A1A15;--p2m:#E07D60;
+  --gold:#F2C94C;--goldb:#1F1A06;--goldm:#B08C1A;
+  --red:#F87171;--redb:#1C0A0A;--redm:#EF4444;
+  --green:#4ADE80;--greenb:#0A1C0A;
+  --orange:#FB923C;--orangeb:#1C1008;
+  --sh:0 4px 16px rgba(0,0,0,0.40),0 1px 4px rgba(0,0,0,0.25);
+  --sh-md:0 8px 32px rgba(0,0,0,0.50),0 2px 8px rgba(0,0,0,0.25);
+  --sh-lg:0 20px 60px rgba(0,0,0,0.60),0 4px 16px rgba(0,0,0,0.35);
+  --sh-3d:0 4px 16px rgba(0,0,0,0.40),0 1px 4px rgba(0,0,0,0.25);
+  --sh-glow:0 0 0 4px rgba(139,127,232,.30);
 }
-:root.dark .skeleton{background:linear-gradient(90deg,#1E293B 25%,#263244 50%,#1E293B 75%);background-size:200% 100%;}
-:root.dark .toast{background:#1E293B;color:#E2E8F0;border:1px solid rgba(255,255,255,0.08);}
+:root.dark .skeleton{background:linear-gradient(90deg,#1E1B2B 25%,#2A2540 50%,#1E1B2B 75%);background-size:200% 100%;}
+:root.dark .toast{background:#2A2540;color:#F0EBF8;border:1px solid rgba(255,255,255,0.10);}
+:root.dark .bot-nav-inner,.dark .app-hdr{border-color:rgba(255,255,255,0.06);}
+:root.dark .home-balance-card,:root.dark .w,:root.dark .home-task-row{background:var(--surface);}
+:root.dark .ch-in{background:#2A2540;border-color:rgba(255,255,255,0.08);color:var(--ink);}
+:root.dark .msg.theirs .msg-bb{background:#2A2540;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;font-family:'Inter','UI','Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
 .screen{display:none;min-height:100vh;flex-direction:column;}
@@ -686,35 +690,36 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .msg{display:flex;gap:8px;animation:fadeUp .2s ease both;}
 .msg.mine{flex-direction:row-reverse;}
 .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;align-self:flex-end;}
-.msg-bb{max-width:74%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.6;box-shadow:var(--sh);}
-.msg.theirs .msg-bb{background:var(--surface);border-bottom-left-radius:4px;}
-.msg.mine .msg-bb{color:#fff;border-bottom-right-radius:4px;}
+.msg-bb{max-width:74%;min-width:80px;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.55;box-shadow:var(--sh);word-break:break-word;}
+.msg.theirs .msg-bb{background:var(--surface);border-bottom-left-radius:5px;}
+.msg.mine .msg-bb{color:#fff;background:var(--p1d);border-bottom-right-radius:5px;}
 .msg-mt{font-size:9px;color:var(--faint);margin-top:3px;display:flex;align-items:center;gap:5px;}
 .msg.mine .msg-mt{justify-content:flex-end;}
 .msg-sn{font-size:9px;font-weight:700;color:var(--muted);margin-bottom:2px;}
 .e2e{font-size:9px;color:var(--green);font-weight:600;}
 .ch-sp{text-align:center;font-size:10px;font-weight:600;color:var(--faint);letter-spacing:.03em;margin:6px 0;}
 .ch-eb{display:flex;align-items:center;gap:6px;background:var(--goldb);border:1px solid var(--goldm);border-radius:10px;padding:8px 12px;margin:0 16px 8px;font-size:11px;color:var(--goldm);}
-.ch-iw{padding:10px 16px 14px;background:var(--bg);border-top:1px solid var(--border2);display:flex;gap:10px;align-items:flex-end;}
+.ch-iw{padding:10px 16px calc(14px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border2);display:flex;gap:8px;align-items:flex-end;}
 .ch-in{
-  flex:1;background:var(--surface);border:1.5px solid var(--border2);
-  border-radius:20px;padding:10px 15px;
-  font-size:13px;color:var(--ink);outline:none;resize:none;max-height:110px;line-height:1.5;
-  box-shadow:var(--sh);
+  flex:1;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:22px;padding:11px 16px;
+  font-size:14px;color:var(--ink);outline:none;resize:none;max-height:120px;line-height:1.5;
+  font-family:'Inter','UI',sans-serif;
   transition:border-color .2s,box-shadow .2s;
 }
-.ch-in:focus{border-color:var(--p1m);box-shadow:var(--sh),var(--sh-glow);}
-.ch-bts{display:flex;flex-direction:column;gap:4px;}
+.ch-in:focus{border-color:var(--p1m);box-shadow:var(--sh-glow);}
+.ch-bts{display:flex;flex-direction:row;gap:6px;align-items:center;}
 .ch-sd{
   background:var(--p1d);
-  border:none;border-radius:14px;width:42px;height:42px;
-  display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:16px;
-  box-shadow:0 4px 12px rgba(122,107,174,.35);
-  transition:all .2s var(--ease-spring);
+  border:none;border-radius:50%;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;
+  box-shadow:0 4px 12px rgba(91,78,192,.35);
+  transition:all .2s var(--ease-spring);flex-shrink:0;
 }
-.ch-sd:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(122,107,174,.45);}
-.ch-et{background:none;border:none;cursor:pointer;font-size:14px;width:38px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:7px;opacity:.4;}
-.ch-et.on{opacity:1;}
+.ch-sd:hover{transform:scale(1.06);box-shadow:0 6px 18px rgba(91,78,192,.45);}
+.ch-sd:active{transform:scale(.94);}
+.ch-et{background:none;border:none;cursor:pointer;font-size:14px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px;opacity:.45;color:var(--muted);}
+.ch-et.on{opacity:1;color:var(--gold);}
 
 /* EQUITY — Toy-Style */
 .eq-wr{padding:14px;}
@@ -953,21 +958,31 @@ html.large-text{font-size:115%;}
   <div id="p-chat" class="page">
     <div class="ch-wr">
       <div id="ch-eb" class="ch-eb" style="display:none">
-        ⏱️ Auto-suppression :
-        <select id="eph-dur" onchange="setEphDur(this.value)" style="background:var(--goldb);border:1px solid var(--goldm);border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;color:var(--gold);outline:none">
-          <option value="3600000">1h</option>
-          <option value="86400000" selected>24h</option>
-          <option value="259200000">3 jours</option>
-          <option value="604800000">7 jours</option>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Auto-suppression :
+        <select id="eph-dur" onchange="setEphDur(this.value)" style="background:var(--goldb);border:1px solid var(--goldm);border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;color:var(--goldm);outline:none">
+          <option value="30000">30 secondes</option>
+          <option value="300000">5 minutes</option>
+          <option value="3600000">1 heure</option>
+          <option value="28800000">8 heures</option>
+          <option value="86400000" selected>24 heures</option>
+          <option value="604800000">1 semaine</option>
+          <option value="2419200000">4 semaines</option>
+          <option value="custom">Personnalisé…</option>
         </select>
       </div>
-      <div class="ch-ms" id="ch-ms"><div class="empty"><div class="ei">💬</div><p>Espace privé · 🔒 Chiffré de bout en bout</p></div></div>
+      <div class="ch-ms" id="ch-ms"><div class="empty"><div class="ei">💬</div><p>Espace privé · 🔒 Chiffré de bout en bout<br><span style="font-size:10px;opacity:.7">Appui long sur ✉ pour activer l'auto-suppression</span></p></div></div>
       <div class="ch-iw">
-        <textarea class="ch-in" id="ch-in" placeholder="Message chiffré…" rows="1" onkeydown="chKey(event)" oninput="chResize(this)"></textarea>
+        <textarea class="ch-in" id="ch-in" placeholder="Message…" rows="1" onkeydown="chKey(event)" oninput="chResize(this)"></textarea>
         <div class="ch-bts">
-          <button class="ch-sd" onclick="sendMsg()" aria-label="Envoyer le message">↑</button>
-          <button class="ch-et" id="ch-et" onclick="togEph()" title="Messages éphémères">⏱️</button>
-          <button class="ch-et" onclick="showFingerprint()" title="Vérifier la clé de sécurité">🔑</button>
+          <button class="ch-sd" id="ch-sd-btn"
+            onclick="sendMsg()"
+            onpointerdown="chSdPressStart(event)"
+            onpointerup="chSdPressEnd(event)"
+            onpointerleave="chSdPressEnd(event)"
+            aria-label="Envoyer — appui long pour messages éphémères">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -1450,7 +1465,7 @@ function b64e(buf){return btoa(String.fromCharCode(...(buf instanceof Uint8Array
 let A={
   user:null,me:null,couple:null,partner:null,sharedKey:null,_pk:null,_sessionKey:null,
   tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
-  wkOff:0,selAc:null,filt:'all',prio:'low',eTid:null,eph:false,unread:0,avail:{},
+  wkOff:0,selAc:null,filt:'todo',prio:'low',eTid:null,eph:false,unread:0,avail:{},
   msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true,
   _rtChannel:null,
   calEvents:[],calSelected:null,txFilt:'all'  // référence au canal realtime pour unsubscribe propre
@@ -2256,11 +2271,11 @@ function renderTasks(){
       <div class="bal-tp">${tip}</div>
     </div></div>
     <div class="tabs-row">
-      <button class="tab ${A.filt==='all'?'active':''}" onclick="setF('all',this)">Toutes <span class="tab-n">${all}</span></button>
       <button class="tab ${A.filt==='todo'?'active':''}" onclick="setF('todo',this)">À faire <span class="tab-n">${todo}</span></button>
-      <button class="tab ${A.filt==='done'?'active':''}" onclick="setF('done',this)">Faites <span class="tab-n">${done}</span></button>
       <button class="tab ${A.filt==='mine'?'active':''}" onclick="setF('mine',this)">Miennes <span class="tab-n">${mine}</span></button>
+      <button class="tab ${A.filt==='done'?'active':''}" onclick="setF('done',this)">Terminées <span class="tab-n">${done}</span></button>
       <button class="tab ${A.filt==='free'?'active':''}" onclick="setF('free',this)">Libres <span class="tab-n">${free}</span></button>
+      <button class="tab ${A.filt==='all'?'active':''}" onclick="setF('all',this)">Toutes <span class="tab-n">${all}</span></button>
       <button class="tab ${A.filt==='perso'?'active':''}" onclick="setF('perso',this)">🔒 Perso <span class="tab-n">${perso.length}</span></button>
     </div>
     <div class="tl-wrap" id="tl-wrap"></div>`;
@@ -2314,23 +2329,29 @@ function buildTC(t){
     const u=isMe?me:pt;
     const col=sanitizeColor(u?.avatar_color);
     const init=(u?.username||'?')[0].toUpperCase();
-    // Son propre badge est cliquable pour se retirer (si tâche non terminée)
     const removeFn=uid===t.assignee_id?'release':'leaveTask';
     const clickable=isMe&&!t.is_done;
-    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:26px;height:26px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+init+'</div>';
+    const content=u?.avatar_url
+      ?'<img src="'+u.avatar_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+      :init;
+    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:28px;height:28px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+content+'</div>';
   }
 
   let pChips=parts.map(uid=>avChip(uid)).join('');
 
-  // Bouton "Me positionner" si je ne suis pas encore dessus et tâche non terminée
   let joinBtn='';
   if(!t.is_personal&&!t.is_done&&!meOn){
     const fn=!t.assignee_id?'claim':'joinTask';
-    joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:2px">+ Me positionner</button>';
+    joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px">+ Me positionner</button>';
   }
 
-  const rightH='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'
-    +(pChips?'<div style="display:flex;gap:3px">'+pChips+'</div>':'')
+  // Avatars + edit/delete in same row
+  const rightH='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
+    +'<div style="display:flex;align-items:center;gap:4px">'
+      +(pChips?pChips:'')
+      +'<button class="tc-a" onclick="editTask(\''+t.id+'\')" aria-label="Modifier" title="Modifier" style="opacity:.55">✏️</button>'
+      +'<button class="tc-a" onclick="delT(\''+t.id+'\')" aria-label="Supprimer" title="Supprimer" style="opacity:.55">🗑️</button>'
+    +'</div>'
     +joinBtn
     +'</div>';
 
@@ -2343,8 +2364,7 @@ function buildTC(t){
     +dueH+'</div>'
     +(t.note?'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+esc(t.note)+'</div>':'')
     +(t.is_done&&t.validated_by?'<div style="font-size:10px;color:var(--green);margin-top:3px">✓ Validé·e par '+(t.validated_by===meId?'vous':esc(pt?.username||'partenaire'))+'</div>':'')
-    +'</div><div class="tc-rt">'+rightH
-    +'<div class="tc-ax"><button class="tc-a" onclick="editTask(\''+t.id+'\')" aria-label="Modifier la tâche" title="Modifier">✏️</button><button class="tc-a" onclick="delT(\''+t.id+'\')" aria-label="Supprimer la tâche" title="Supprimer">🗑️</button></div></div>';
+    +'</div><div class="tc-rt">'+rightH+'</div>';
   return div;
 }
 
@@ -2538,11 +2558,13 @@ async function clearDone(){const ids=A.shop.filter(i=>i.is_checked).map(i=>i.id)
 
 /* ═══ BUDGET ═══ */
 async function _reloadTxs(){
-  // Requête directe — plus fiable que le RPC paginé pour un refresh immédiat
-  const{data,error}=await sb.from('transactions')
-    .select('*').eq('couple_id',A.couple.id)
-    .order('tx_date',{ascending:false}).order('created_at',{ascending:false}).limit(200);
-  if(!error&&data){A.txs=data;A.txHasMore=data.length>=200;A.txCursor=null;}
+  const[txRes,acRes]=await Promise.all([
+    sb.from('transactions').select('*').eq('couple_id',A.couple.id)
+      .order('tx_date',{ascending:false}).order('created_at',{ascending:false}).limit(200),
+    sb.from('accounts').select('*').eq('couple_id',A.couple.id)
+  ]);
+  if(!txRes.error&&txRes.data&&txRes.data.length>0){A.txs=txRes.data;A.txHasMore=txRes.data.length>=200;A.txCursor=null;}
+  if(!acRes.error&&acRes.data)A.accounts=acRes.data;
   if(isP('budget'))renderBudget();
 }
 
@@ -2864,6 +2886,9 @@ async function saveTx(){
     // Patch local immédiat — le RPC a inséré en DB, on l'affiche sans attendre realtime
     const newTx={...pl,id:data?.transaction_id||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():'tmp-'+Date.now()),created_at:new Date().toISOString()};
     A.txs.unshift(newTx);
+    // Mettre à jour le solde du compte localement pour affichage immédiat
+    const acIdx=A.accounts.findIndex(a=>a.id===accId);
+    if(acIdx!==-1){const delta=_txDelta(type,amount);A.accounts[acIdx]={...A.accounts[acIdx],balance:Number(A.accounts[acIdx].balance)+delta};}
     closeM('mo-tx');toast('Enregistré !','success');renderBudget();_reloadTxs();return;
   }
   // RPC obligatoire — pas de fallback (bloqué par RLS tx_block_direct_insert)
@@ -3042,7 +3067,10 @@ async function addIngrToShop(){
 
 /* ═══ CHAT E2E ═══ */
 let _eph=false;
-function togEph(){_eph=!_eph;document.getElementById('ch-et').classList.toggle('on',_eph);document.getElementById('ch-eb').style.display=_eph?'flex':'none';}
+let _ephPressTimer=null;
+function togEph(){_eph=!_eph;document.getElementById('ch-eb').style.display=_eph?'flex':'none';const btn=document.getElementById('ch-sd-btn');if(btn)btn.style.background=_eph?'var(--gold)':'var(--p1d)';}
+function chSdPressStart(e){_ephPressTimer=setTimeout(()=>{_ephPressTimer=null;togEph();},600);}
+function chSdPressEnd(e){if(_ephPressTimer){clearTimeout(_ephPressTimer);_ephPressTimer=null;}}
 function renderMsgs(){
   const wrap=document.getElementById('ch-ms');if(!wrap)return;
   // ✅ Marquer que l'utilisateur a vu les messages maintenant
@@ -3434,7 +3462,18 @@ async function togT(id){
 
 // Timer éphémère configurable
 let _ephDur=86400000;
-function setEphDur(v){_ephDur=parseInt(v)||86400000;}
+function setEphDur(v){
+  if(v==='custom'){
+    const sel=document.getElementById('eph-dur');
+    const d=prompt('Durée personnalisée (en minutes) :');
+    const ms=d&&!isNaN(parseInt(d))?parseInt(d)*60000:86400000;
+    _ephDur=ms;
+    const opt=document.createElement('option');opt.value=ms;opt.textContent='Perso. '+Math.round(ms/60000)+'min';opt.selected=true;
+    sel.insertBefore(opt,sel.lastElementChild);sel.value=ms;
+    return;
+  }
+  _ephDur=parseInt(v)||86400000;
+}
 function togEph(){
   A.eph=!A.eph;
   document.getElementById('ch-et')?.classList.toggle('on',A.eph);
@@ -3563,76 +3602,105 @@ function renderSettings(){
   const prefs=(()=>{try{return JSON.parse(localStorage.getItem('ll-prefs')||'{}');}catch{return{};}})();
   const hapt=prefs.haptics!==false;
   const reduceMotion=prefs.reduceMotion===true;
-  const highContrast=prefs.highContrast===true;
+  const highContrast=prefs.highContrast!==false; // activé par défaut
   const largeText=prefs.largeText===true;
+  const curLang=prefs.lang||'fr';
+  const langs=[
+    {v:'fr',l:'🇫🇷 Français'},
+    {v:'en',l:'🇬🇧 English'},
+    {v:'es',l:'🇪🇸 Español'},
+    {v:'de',l:'🇩🇪 Deutsch'},
+    {v:'it',l:'🇮🇹 Italiano'},
+    {v:'pt',l:'🇧🇷 Português'},
+    {v:'ar',l:'🇸🇦 العربية'},
+    {v:'ru',l:'🇷🇺 Русский'},
+    {v:'zh',l:'🇨🇳 中文'},
+    {v:'ja',l:'🇯🇵 日本語'},
+    {v:'ko',l:'🇰🇷 한국어'},
+    {v:'tr',l:'🇹🇷 Türkçe'},
+    {v:'pl',l:'🇵🇱 Polski'},
+    {v:'nl',l:'🇳🇱 Nederlands'},
+    {v:'hi',l:'🇮🇳 हिन्दी'},
+  ];
+
+  const avatarSrc=me?.avatar_url?`<img src="${me.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid ${sanitizeColor(me?.avatar_color)}44">`
+    :`<div style="width:72px;height:72px;border-radius:50%;background:${sanitizeColor(me?.avatar_color)}22;color:${sanitizeColor(me?.avatar_color)};font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;border:3px solid ${sanitizeColor(me?.avatar_color)}33">${(me?.username||'?')[0].toUpperCase()}</div>`;
 
   el.innerHTML='<div class="st-wr">'
-    // ── EN-TÊTE PROFIL ──
-    +'<div style="text-align:center;padding:24px 0 14px">'
-      +'<div style="width:72px;height:72px;border-radius:50%;background:'+sanitizeColor(me?.avatar_color)+'22;color:'+sanitizeColor(me?.avatar_color)+';font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;border:3px solid '+sanitizeColor(me?.avatar_color)+'33">'+(me?.username||'?')[0].toUpperCase()+'</div>'
-      +'<div style="font-family:Lora,serif;font-size:20px;font-weight:700">'+esc(me?.username||'')+'</div>'
-      +'<div style="font-size:12px;color:var(--muted);margin-top:2px">'+esc(A.user?.email||'')+'</div>'
-      +'<button onclick="openProfileEdit()" style="margin-top:10px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:9px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--p1);cursor:pointer;font-family:Outfit,sans-serif">✏️ Modifier mon profil</button>'
-    +'</div>'
-
-    // ── SECTION 1 : VOTRE FOYER ──
-    +(couple?'<div class="st-sc"><div class="st-st">👥 Votre foyer</div>'
-      +'<div style="padding:12px 16px">'
-        +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Code d\'invitation pour votre partenaire</div>'
-        +'<div class="inv-cr"><span class="inv-co" id="inv-code-display">'+(couple.invite_code||'——')+'</span><button class="btn-cp2" onclick="copyCode(document.getElementById(\'inv-code-display\').textContent)" aria-label="Copier le code d\'invitation">Copier</button></div>'
-        +expireInfo
-        +rotateBtn
-        +(A.partner?'<div style="display:flex;align-items:center;gap:8px;margin-top:12px;background:var(--greenb);border:1px solid #86EFAC;border-radius:10px;padding:10px 12px"><div style="width:28px;height:28px;border-radius:50%;background:'+sanitizeColor(A.partner.avatar_color)+'22;color:'+sanitizeColor(A.partner.avatar_color)+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">'+A.partner.username[0].toUpperCase()+'</div><div><div style="font-size:13px;font-weight:600">'+esc(A.partner.username)+'</div><div style="font-size:11px;color:var(--green)">✓ Partenaire connecté·e</div></div></div>'
+    // ── PROFIL ──
+    +'<div class="st-sc"><div class="st-st">👤 Profil</div>'
+      +'<div style="display:flex;align-items:center;gap:16px;padding:12px 16px 8px">'
+        +'<div style="position:relative;cursor:pointer" onclick="pickProfilePhoto()">'
+          +avatarSrc
+          +'<div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--p1d);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>'
+        +'</div>'
+        +'<div style="flex:1">'
+          +'<div style="font-family:\'Fraunces\',\'Display\',Georgia,serif;font-size:18px;font-weight:700">'+esc(me?.username||'')+'</div>'
+          +'<div style="font-size:12px;color:var(--muted);margin-top:2px">'+esc(A.user?.email||'')+'</div>'
+          +'<button onclick="openProfileEdit()" style="margin-top:8px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:9px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--p1d);cursor:pointer">Modifier</button>'
+        +'</div>'
+      +'</div>'
+      +(couple?'<div style="padding:0 16px 12px">'
+        +'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Code d\'invitation partenaire</div>'
+        +'<div class="inv-cr"><span class="inv-co" id="inv-code-display">'+(couple.invite_code||'——')+'</span><button class="btn-cp2" onclick="copyCode(document.getElementById(\'inv-code-display\').textContent)">Copier</button></div>'
+        +expireInfo+rotateBtn
+        +(A.partner?'<div style="display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--greenb);border:1px solid #86EFAC;border-radius:10px;padding:10px 12px"><div style="width:28px;height:28px;border-radius:50%;background:'+sanitizeColor(A.partner.avatar_color)+'22;color:'+sanitizeColor(A.partner.avatar_color)+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">'+A.partner.username[0].toUpperCase()+'</div><div><div style="font-size:13px;font-weight:600">'+esc(A.partner.username)+'</div><div style="font-size:11px;color:var(--green)">✓ Partenaire connecté·e</div></div></div>'
         :'<div style="font-size:12px;color:var(--muted);margin-top:10px;background:var(--goldb);border:1px solid var(--goldm);border-radius:9px;padding:9px 12px">⏳ En attente de votre partenaire…</div>')
+      +'</div>':'')
+    +'</div>'
+
+    // ── APPARENCE ──
+    +'<div class="st-sc"><div class="st-st">🎨 Apparence</div>'
+      +'<label class="st-tg-rw"><span class="st-ri">🌙</span><div class="st-rf"><div class="st-rt">Mode sombre</div><div class="st-rs">Thème foncé pour la nuit</div></div><input type="checkbox" '+(prefs.darkMode?'checked':'')+' onchange="setPref(\'darkMode\',this.checked)"></label>'
+      +'<label class="st-tg-rw"><span class="st-ri">🔆</span><div class="st-rf"><div class="st-rt">Contraste élevé</div><div class="st-rs">Meilleure lisibilité (activé par défaut)</div></div><input type="checkbox" '+(highContrast?'checked':'')+' onchange="setPref(\'highContrast\',this.checked)"></label>'
+      +'<label class="st-tg-rw"><span class="st-ri">🔠</span><div class="st-rf"><div class="st-rt">Texte agrandi</div><div class="st-rs">Police +15%</div></div><input type="checkbox" '+(largeText?'checked':'')+' onchange="setPref(\'largeText\',this.checked)"></label>'
+      +'<label class="st-tg-rw"><span class="st-ri">🎬</span><div class="st-rf"><div class="st-rt">Réduire les animations</div><div class="st-rs">Moins d\'effets visuels</div></div><input type="checkbox" '+(reduceMotion?'checked':'')+' onchange="setPref(\'reduceMotion\',this.checked)"></label>'
+    +'</div>'
+
+    // ── LANGUE ──
+    +'<div class="st-sc"><div class="st-st">🌐 Langue</div>'
+      +'<div style="padding:10px 16px 14px">'
+        +'<select onchange="setPref(\'lang\',this.value);toast(\'Langue mise à jour — relancez l\\\'app pour appliquer.\',\'info\')" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:12px;padding:10px 14px;font-size:14px;font-family:\'Inter\',\'UI\',sans-serif;color:var(--ink);outline:none;cursor:pointer">'
+          +langs.map(l=>'<option value="'+l.v+'"'+(l.v===curLang?' selected':'')+'>'+l.l+'</option>').join('')
+        +'</select>'
+        +'<div style="font-size:11px;color:var(--muted);margin-top:8px">L\'interface sera traduite lors du prochain démarrage.</div>'
       +'</div>'
-    +'</div>':'')
-
-    // ── SECTION 2 : MODULES ──
-    +'<div class="st-sc"><div class="st-st">🎯 Modules</div>'
-      +'<div class="st-rw" onclick="showPage(\'equity\',document.getElementById(\'n-more\'))" role="button" tabindex="0"><span class="st-ri">⚖️</span><div class="st-rf"><div class="st-rt">Équité &amp; disponibilité</div><div class="st-rs">Ajustez le calcul de répartition</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" onclick="showPage(\'meals\',document.getElementById(\'n-more\'))" role="button" tabindex="0"><span class="st-ri">🍽️</span><div class="st-rf"><div class="st-rt">Planificateur de repas</div><div class="st-rs">Gérez le menu de la semaine</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
-    // ── SECTION 3 : SÉCURITÉ ──
-    +'<div class="st-sc"><div class="st-st">🔒 Sécurité &amp; chiffrement</div>'
-      +'<div class="st-rw" onclick="showFingerprint()" role="button" tabindex="0"><span class="st-ri">🔑</span><div class="st-rf"><div class="st-rt">Clés de sécurité E2E</div><div class="st-rs" style="color:'+keyColor+';font-weight:700">'+keyState+'</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" onclick="showPage(\'chat\',document.getElementById(\'n-ch\'))" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">Messagerie chiffrée</div><div class="st-rs">Chiffrement de bout en bout actif</div></div><span class="st-ra">›</span></div>'
-      +'<div style="padding:10px 16px;font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg);margin:0 12px 12px;border-radius:9px">'
-        +'💡 Vos messages sont chiffrés sur votre appareil avant d\'être envoyés. Personne d\'autre — pas même nous — ne peut les lire.'
-      +'</div>'
+    // ── NOTIFICATIONS ──
+    +'<div class="st-sc"><div class="st-st">🔔 Notifications</div>'
+      +'<label class="st-tg-rw"><span class="st-ri">📳</span><div class="st-rf"><div class="st-rt">Vibrations</div><div class="st-rs">Retour haptique</div></div><input type="checkbox" '+(hapt?'checked':'')+' onchange="setPref(\'haptics\',this.checked)"></label>'
     +'</div>'
 
-    // ── SECTION 4 : PRÉFÉRENCES ──
-    +'<div class="st-sc"><div class="st-st">⚙️ Préférences</div>'
-      +'<label class="st-tg-rw"><span class="st-ri">🌙</span><div class="st-rf"><div class="st-rt">Mode sombre</div><div class="st-rs">Thème foncé, effet 3D préservé</div></div><input type="checkbox" '+(prefs.darkMode?'checked':'')+' onchange="setPref(\'darkMode\',this.checked)" aria-label="Activer le mode sombre"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">📳</span><div class="st-rf"><div class="st-rt">Vibrations</div><div class="st-rs">Retour haptique sur les actions</div></div><input type="checkbox" '+(hapt?'checked':'')+' onchange="setPref(\'haptics\',this.checked)" aria-label="Activer les vibrations"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🎬</span><div class="st-rf"><div class="st-rt">Réduire les animations</div><div class="st-rs">Pour le confort visuel ou les batteries</div></div><input type="checkbox" '+(reduceMotion?'checked':'')+' onchange="setPref(\'reduceMotion\',this.checked)" aria-label="Réduire les animations"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🔆</span><div class="st-rf"><div class="st-rt">Contraste élevé</div><div class="st-rs">Améliore la lisibilité</div></div><input type="checkbox" '+(highContrast?'checked':'')+' onchange="setPref(\'highContrast\',this.checked)" aria-label="Activer le mode contraste élevé"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🔠</span><div class="st-rf"><div class="st-rt">Texte agrandi</div><div class="st-rs">Tailles de police +15%</div></div><input type="checkbox" '+(largeText?'checked':'')+' onchange="setPref(\'largeText\',this.checked)" aria-label="Activer le texte agrandi"></label>'
-    +'</div>'
-
-    // ── SECTION 5 : SAUVEGARDE ──
-    +'<div class="st-sc"><div class="st-st">💾 Sauvegarde</div>'
-      +'<div class="st-rw" onclick="BackupManager.exportBackup()" role="button" tabindex="0"><span class="st-ri">📤</span><div class="st-rf"><div class="st-rt">Exporter la sauvegarde</div><div class="st-rs">Fichier chiffré AES-256 · protégé par mot de passe</div></div><span class="st-ra">›</span></div>'
+    // ── SÉCURITÉ ──
+    +'<div class="st-sc"><div class="st-st">🔒 Sécurité</div>'
+      +'<div class="st-rw" onclick="showFingerprint()" role="button" tabindex="0"><span class="st-ri">🔑</span><div class="st-rf"><div class="st-rt">Clés de sécurité E2E</div><div class="st-rs" style="color:'+keyColor+';font-weight:600">'+keyState+'</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" onclick="BackupManager.exportBackup()" role="button" tabindex="0"><span class="st-ri">📤</span><div class="st-rf"><div class="st-rt">Exporter la sauvegarde</div><div class="st-rs">Fichier chiffré AES-256</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="BackupManager.importBackup()" role="button" tabindex="0"><span class="st-ri">📥</span><div class="st-rf"><div class="st-rt">Restaurer une sauvegarde</div><div class="st-rs">Fusionne les données par id</div></div><span class="st-ra">›</span></div>'
+      +'<div style="padding:8px 16px 12px;font-size:11px;color:var(--muted);line-height:1.6">💡 Vos messages sont chiffrés sur votre appareil avant d\'être envoyés.</div>'
     +'</div>'
 
-    // ── SECTION 6 : COMPTE ──
+    // ── MODULES ──
+    +'<div class="st-sc"><div class="st-st">🎯 Modules</div>'
+      +'<div class="st-rw" onclick="showPage(\'equity\',document.getElementById(\'n-st\'));closeMoreMenu()" role="button" tabindex="0"><span class="st-ri">⚖️</span><div class="st-rf"><div class="st-rt">Équité &amp; disponibilité</div><div class="st-rs">Ajustez la répartition</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" onclick="showPage(\'meals\',document.getElementById(\'n-ml\'));closeMoreMenu()" role="button" tabindex="0"><span class="st-ri">🍽️</span><div class="st-rf"><div class="st-rt">Planificateur de repas</div><div class="st-rs">Menu de la semaine</div></div><span class="st-ra">›</span></div>'
+    +'</div>'
+
+    // ── COMPTE ──
     +'<div class="st-sc"><div class="st-st">👤 Compte</div>'
       +'<div class="st-rw" onclick="doSignOut()" role="button" tabindex="0"><span class="st-ri">🚪</span><div class="st-rf"><div class="st-rt">Se déconnecter</div><div class="st-rs">'+esc(A.user?.email||'')+'</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" onclick="delAccount()" role="button" tabindex="0" style="color:var(--red)"><span class="st-ri">🗑️</span><div class="st-rf"><div class="st-rt">Supprimer mon compte</div><div class="st-rs">Action irréversible</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
-    // ── SECTION 6 : ZONE DE DANGER ──
-    +'<div class="st-sc"><div class="st-st" style="color:var(--red)">⚠️ Zone de danger</div>'
-      +'<div style="padding:12px 16px">'
-        +'<button class="btn-dng" onclick="delAccount()">🗑️ Supprimer mon compte</button>'
-        +'<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">Cette action est irréversible. Toutes vos données seront supprimées (tâches, budget, messages, agenda).</div>'
-      +'</div>'
+    // ── AIDE ──
+    +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
+      +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.3 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
-    // ── PIED DE PAGE ──
-    +'<div style="text-align:center;padding:18px 16px 24px;font-size:11px;color:var(--faint);line-height:1.7">🔒 Messages chiffrés E2E · RLS Supabase<br>LoadLess v4.3 — Build '+new Date().toISOString().slice(0,10)+'</div>'
-+'<div style="text-align:center;padding:0 16px 28px"><a href="https://github.com/1871M/loadless/releases/latest" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:12px;font-size:13px;font-weight:700;color:var(--p1);text-decoration:none">📱 Télécharger l\'APK Android</a></div>'
+    +'<div style="text-align:center;padding:12px 16px 28px"><a href="https://github.com/1871M/loadless/releases/latest" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:12px;font-size:13px;font-weight:700;color:var(--p1d);text-decoration:none">📱 Télécharger l\'APK</a></div>'
+    +'<div style="text-align:center;padding:0 16px 32px;font-size:10px;color:var(--faint)">🔒 E2E · Supabase RLS · Build '+new Date().toISOString().slice(0,10)+'</div>'
     +'</div>';
 
   // Appliquer les préférences au DOM (au cas où)
@@ -3687,6 +3755,45 @@ function openProfileEdit(){
   +'</div>';
   document.body.appendChild(overlay);
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+}
+
+function pickProfilePhoto(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>5*1024*1024){toast('Image trop grande (max 5 Mo)','error');return;}
+    const reader=new FileReader();
+    reader.onload=async(ev)=>{
+      const b64=ev.target.result;
+      try{
+        const{data,error}=await sb.from('profiles').update({avatar_url:b64}).eq('id',A.user.id);
+        if(error)throw error;
+        A.me.avatar_url=b64;toast('Photo mise à jour !','success');renderSettings();
+      }catch(err){toast('Erreur: '+err.message,'error');}
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function showHelpModal(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)';
+  ov.innerHTML=`<div style="background:var(--surface);border-radius:24px 24px 0 0;padding:22px 20px 40px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto">
+    <div style="font-family:'Fraunces','Display',Georgia,serif;font-size:20px;font-weight:700;margin-bottom:16px">Guide d'utilisation</div>
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.6">
+      <div><strong>🏠 Accueil</strong> — Vue d'ensemble de votre foyer, équilibre budget et tâches du jour.</div>
+      <div><strong>📅 Agenda</strong> — Gérez les événements familiaux et planifiez votre semaine.</div>
+      <div><strong>💬 Chat</strong> — Messagerie chiffrée de bout en bout, inspirée de Signal. Appui long sur ✉ pour activer les messages éphémères.</div>
+      <div><strong>✅ Tâches</strong> — Répartissez les tâches du foyer. Assignez-les à vous ou votre partenaire.</div>
+      <div><strong>💳 Budget</strong> — Suivez vos dépenses par compte. Ajoutez revenus, dépenses et abonnements.</div>
+      <div><strong>🛒 Courses</strong> — Liste de courses partagée en temps réel.</div>
+      <div><strong>⚖️ Équité</strong> — Visualisez la répartition des tâches entre les deux partenaires.</div>
+    </div>
+    <button onclick="this.closest('[style*=position]').remove()" style="margin-top:20px;width:100%;padding:14px;background:var(--p1d);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer">Fermer</button>
+  </div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
 }
 
 async function saveProfile(){
@@ -4199,6 +4306,37 @@ const BackupManager={
   function _reset(){clearTimeout(_timer);_timer=setTimeout(_lock,TIMEOUT);}
   ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,_reset,{passive:true}));
   _reset();
+})();
+
+/* ═══ SWIPE NAVIGATION ═══ */
+(function(){
+  const NAV_ORDER=['home','calendar','chat','settings'];
+  let _sx=0,_sy=0,_sTime=0;
+  document.getElementById('s-app').addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_sTime=Date.now();
+  },{passive:true});
+  document.getElementById('s-app').addEventListener('touchend',e=>{
+    if(Date.now()-_sTime>500)return;
+    const dx=e.changedTouches[0].clientX-_sx;
+    const dy=e.changedTouches[0].clientY-_sy;
+    if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*0.8)return;
+    // Don't swipe inside scrollable chat or modals
+    const target=e.target;
+    if(target.closest('.mo-ov,.modal,.more-menu,.ch-ms'))return;
+    const cur=document.querySelector('.page.active')?.id?.replace('p-','');
+    const idx=NAV_ORDER.indexOf(cur);
+    if(idx===-1)return;
+    if(dx<0&&idx<NAV_ORDER.length-1){
+      const next=NAV_ORDER[idx+1];
+      const navMap={home:'n-ho',calendar:'n-cal',chat:'n-ch',settings:'n-st'};
+      showPage(next,document.getElementById(navMap[next]));
+    } else if(dx>0&&idx>0){
+      const prev=NAV_ORDER[idx-1];
+      const navMap={home:'n-ho',calendar:'n-cal',chat:'n-ch',settings:'n-st'};
+      showPage(prev,document.getElementById(navMap[prev]));
+    }
+  },{passive:true});
 })();
 
 </script>
