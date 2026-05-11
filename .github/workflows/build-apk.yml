@@ -40,18 +40,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Add Android platform (if not present)
+      - name: Add Android platform
         run: |
-          if [ ! -f android/app/build.gradle ]; then
-            npx cap add android
-          fi
-
-      - name: Copy custom Android files
-        run: |
-          cp -f android/app/src/main/AndroidManifest.xml \
-            android/app/src/main/AndroidManifest.xml.bak 2>/dev/null || true
-          # Les fichiers XML custom sont déjà dans le repo
-          echo "Custom Android files already in place."
+          # Sauvegarde des fichiers custom trackés dans git
+          mkdir -p /tmp/android-custom/app/src/main/res/xml
+          cp android/app/src/main/AndroidManifest.xml \
+            /tmp/android-custom/app/src/main/AndroidManifest.xml 2>/dev/null || true
+          cp android/app/src/main/res/xml/file_paths.xml \
+            /tmp/android-custom/app/src/main/res/xml/file_paths.xml 2>/dev/null || true
+          cp android/app/src/main/res/xml/network_security_config.xml \
+            /tmp/android-custom/app/src/main/res/xml/network_security_config.xml 2>/dev/null || true
+          # Suppression du dossier partiel puis recréation complète
+          rm -rf android
+          npx cap add android
+          # Restauration des fichiers custom (AndroidManifest sans GAFAM, file_paths, network_security)
+          cp /tmp/android-custom/app/src/main/AndroidManifest.xml \
+            android/app/src/main/AndroidManifest.xml
+          cp /tmp/android-custom/app/src/main/res/xml/file_paths.xml \
+            android/app/src/main/res/xml/file_paths.xml
+          cp /tmp/android-custom/app/src/main/res/xml/network_security_config.xml \
+            android/app/src/main/res/xml/network_security_config.xml
 
       - name: Sync Capacitor
         run: npx cap sync android
