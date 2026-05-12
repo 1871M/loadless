@@ -145,7 +145,7 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 | Console logs en prod | ✅ | Désactivés (sauf erreurs sans data) sur hostname != localhost |
 | Logs LL en mémoire | ✅ | SENSITIVE redaction + 200 events FIFO max |
 | `LL.exportLogs()` accessible | ⚠️ | Exposé globalement via `window.LL` indirect. Un attaquant avec accès console peut appeler `LL.exportLogs()`. Pas critique car les données sensibles sont redactées. |
-| Capture d'écran Android | ⚠️ | `FLAG_SECURE` non encore configuré (nécessite `npx cap add android` + `MainActivity.java`). |
+| Capture d'écran Android | ✅ | **FIXED** — `MainActivity.kt` avec `FLAG_SECURE` dans `onCreate()`. Screenshots et enregistrement bloqués. |
 | Backup export | ✅ | Messages NON inclus dans backup (pas de `msgs:A.msgs` dans payload). Intentionnel — messages déchiffrables uniquement sur l'appareil avec la clé privée. |
 | Backup import | ⚠️ | `importBackup()` tente upsert transactions directement → bloqué par RLS. Import partiel (tasks/shop/accounts/meals/cal OK, transactions KO). |
 | Clipboard | ℹ️ | `copyCode()` copie le code d'invitation. Clipboard auto-clear non implémenté. |
@@ -175,12 +175,12 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 | Messages éphémères | 10/10 | Filtre lecture + pg_cron suppression physique toutes les heures. |
 | Médias R2 | 10/10 | Chiffrement E2E, presigned URLs, path traversal protégé. LRU cache + blob révocation. |
 | Métadonnées | 9/10 | v=3 : type/name/size/duration chiffrés dans ciphertext. sender_id/created_at/couple_id restent lisibles (inévitable pour RLS/routing). |
-| Fuites / Logs | 9/10 | Redaction propre. FLAG_SECURE en attente Android dir. |
+| Fuites / Logs | 10/10 | Redaction propre. FLAG_SECURE activé dans MainActivity.kt. |
 | Backup | 8/10 | PBKDF2 100k iterations. Argon2id serait meilleur (pas disponible WebCrypto). |
 
-**Score global sécurité chat : 9.3/10**
+**Score global sécurité chat : 9.6/10**
 
-> ℹ️ Score 10/10 atteignable après FLAG_SECURE + (optionnel) Argon2id pour backup si support WebCrypto arrive.
+> ℹ️ Score 10/10 : seul Argon2id backup reste (bloqué par WebCrypto — pas encore supporté).
 
 ---
 
@@ -188,6 +188,5 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 
 | Priorité | Action | Effort |
 |----------|--------|--------|
-| ⚠️ | `FLAG_SECURE` Android après `npx cap add android` | Faible |
 | ℹ️ | Vérifier expiration presigned URLs R2 (PUT < 5min, GET < 15min) dans edge functions | Faible |
 | ℹ️ | Upgrader PBKDF2 → Argon2id pour backup (quand WebCrypto le supportera) | Élevé |
