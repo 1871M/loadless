@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="high-contrast">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -4100,9 +4100,6 @@ function renderSettings(){
   // ── PRÉFÉRENCES (lues depuis localStorage) ──
   const prefs=(()=>{try{return JSON.parse(localStorage.getItem('ll-prefs')||'{}');}catch{return{};}})();
   const hapt=prefs.haptics!==false;
-  const reduceMotion=prefs.reduceMotion===true;
-  const highContrast=prefs.highContrast!==false; // activé par défaut
-  const largeText=prefs.largeText===true;
   const curLang=prefs.lang||'fr';
   const langs=[
     {v:'fr',l:'🇫🇷 Français'},
@@ -4151,9 +4148,6 @@ function renderSettings(){
     // ── APPARENCE ──
     +'<div class="st-sc"><div class="st-st">🎨 Apparence</div>'
       +'<label class="st-tg-rw"><span class="st-ri">🌙</span><div class="st-rf"><div class="st-rt">Mode sombre</div><div class="st-rs">Thème foncé pour la nuit</div></div><input type="checkbox" '+(prefs.darkMode?'checked':'')+' onchange="setPref(\'darkMode\',this.checked)"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🔆</span><div class="st-rf"><div class="st-rt">Contraste élevé</div><div class="st-rs">Meilleure lisibilité (activé par défaut)</div></div><input type="checkbox" '+(highContrast?'checked':'')+' onchange="setPref(\'highContrast\',this.checked)"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🔠</span><div class="st-rf"><div class="st-rt">Texte agrandi</div><div class="st-rs">Police +15%</div></div><input type="checkbox" '+(largeText?'checked':'')+' onchange="setPref(\'largeText\',this.checked)"></label>'
-      +'<label class="st-tg-rw"><span class="st-ri">🎬</span><div class="st-rf"><div class="st-rt">Réduire les animations</div><div class="st-rs">Moins d\'effets visuels</div></div><input type="checkbox" '+(reduceMotion?'checked':'')+' onchange="setPref(\'reduceMotion\',this.checked)"></label>'
     +'</div>'
 
     // ── LANGUE ──
@@ -4175,14 +4169,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">🔒 Sécurité</div>'
       +'<div class="st-rw" onclick="showFingerprint()" role="button" tabindex="0"><span class="st-ri">🔑</span><div class="st-rf"><div class="st-rt">Clés de sécurité E2E</div><div class="st-rs" style="color:'+keyColor+';font-weight:600">'+keyState+'</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="BackupManager.exportBackup()" role="button" tabindex="0"><span class="st-ri">📤</span><div class="st-rf"><div class="st-rt">Exporter la sauvegarde</div><div class="st-rs">Fichier chiffré AES-256</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" onclick="BackupManager.importBackup()" role="button" tabindex="0"><span class="st-ri">📥</span><div class="st-rf"><div class="st-rt">Restaurer une sauvegarde</div><div class="st-rs">Fusionne les données par id</div></div><span class="st-ra">›</span></div>'
       +'<div style="padding:8px 16px 12px;font-size:11px;color:var(--muted);line-height:1.6">💡 Vos messages sont chiffrés sur votre appareil avant d\'être envoyés.</div>'
-    +'</div>'
-
-    // ── MODULES ──
-    +'<div class="st-sc"><div class="st-st">🎯 Modules</div>'
-      +'<div class="st-rw" onclick="showPage(\'equity\',document.getElementById(\'n-st\'));closeMoreMenu()" role="button" tabindex="0"><span class="st-ri">⚖️</span><div class="st-rf"><div class="st-rt">Équité &amp; disponibilité</div><div class="st-rs">Ajustez la répartition</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" onclick="showPage(\'meals\',document.getElementById(\'n-ml\'));closeMoreMenu()" role="button" tabindex="0"><span class="st-ri">🍽️</span><div class="st-rf"><div class="st-rt">Planificateur de repas</div><div class="st-rs">Menu de la semaine</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── COMPTE ──
@@ -4218,7 +4205,7 @@ function setPref(k,v){
 function applyPrefs(){
   let prefs={};try{prefs=JSON.parse(localStorage.getItem('ll-prefs')||'{}');}catch{}
   document.documentElement.classList.toggle('reduce-motion',prefs.reduceMotion===true);
-  document.documentElement.classList.toggle('high-contrast',prefs.highContrast!==false);
+  document.documentElement.classList.add('high-contrast'); // toujours activé
   document.documentElement.classList.toggle('large-text',prefs.largeText===true);
   document.documentElement.classList.toggle('dark',prefs.darkMode===true);
 }
@@ -4458,7 +4445,7 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
   try{
     const prefs=JSON.parse(localStorage.getItem('ll-prefs')||'{}');
     document.documentElement.classList.toggle('reduce-motion',prefs.reduceMotion===true);
-    document.documentElement.classList.toggle('high-contrast',prefs.highContrast!==false);
+    document.documentElement.classList.add('high-contrast'); // toujours activé
     document.documentElement.classList.toggle('large-text',prefs.largeText===true);
   }catch{}
 
