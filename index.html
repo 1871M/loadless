@@ -354,7 +354,7 @@ html,body{height:100%;font-family:'Inter','UI','Segoe UI','Helvetica Neue',Arial
 }
 .hdr-add:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 14px 28px rgba(0,0,0,.08),inset 0 -4px 0 rgba(0,0,0,.06);}
 .page{display:none;flex:1;overflow-y:auto;padding-bottom:100px;}
-.page.active{display:block;animation:slideUp .18s var(--ease) both;}
+.page.active{display:block;animation:slideUp .18s var(--ease) forwards;}
 @media (prefers-reduced-motion:reduce){.page.active{animation:none;}}
 
 /* BOTTOM NAV */
@@ -1050,7 +1050,7 @@ html.large-text{font-size:115%;}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </header>
-  <div id="p-home" class="page active"></div>
+  <div id="p-home" class="page"></div>
   <div id="p-tasks" class="page"></div>
   <div id="p-shop" class="page"></div>
   <div id="p-budget" class="page"></div>
@@ -1723,40 +1723,61 @@ async function doForgot(){
   }catch(e){sm('fg-m',e.message,'err');btn.disabled=false;btn.textContent='Envoyer le lien';}
 }
 
+// Timeout wrapper — évite les hangs réseau sur Android (cold start)
+function withTO(p,ms=7000){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);}
+
 async function onAuth(user){
   A.user=user;
   // ✅ Détection nouvelle session (appareil différent)
   const sessionKey='ll-last-ua-'+user.id;
   const lastUA=localStorage.getItem(sessionKey);
-  const currentUA=navigator.userAgent.slice(0,80); // tronqué pour privacy
+  const currentUA=navigator.userAgent.slice(0,80);
   if(lastUA&&lastUA!==currentUA){
     LL.log('warn','security','new_device_detected',{});
     toast('⚠️ Nouvelle connexion détectée depuis un appareil différent.','error',6000);
   }
   localStorage.setItem(sessionKey,currentUA);
-  let{data:me,error:meErr}=await sb.from('profiles').select('*').eq('id',user.id).single();
+
+  let me;
+  try{
+    const{data}=await withTO(sb.from('profiles').select('*').eq('id',user.id).single());
+    me=data;
+  }catch(e){
+    LL.log('error','auth','profile_load_failed',{msg:e.message});
+    toast('Chargement profil échoué. Réessayez.','error',6000);
+    showSc('s-auth');hideL();return;
+  }
+
   if(!me){
     const un=user.user_metadata?.username||user.email.split('@')[0];
     const cols=['#8B5CF6','#0D9488','#D97706','#DC2626','#2563EB'];
-    const{data:n,error:insertErr}=await sb.from('profiles')
-      .insert({id:user.id,username:un,display_name:un,avatar_color:cols[Math.floor(Math.random()*cols.length)]})
-      .select().single();
-    if(insertErr||!n){
-      LL.log('error','auth','profile_insert_failed',{message:insertErr?.message});
-      toast('Erreur de création du profil. Réessayez dans quelques secondes.','error',6000);
+    try{
+      const{data:n}=await withTO(sb.from('profiles')
+        .insert({id:user.id,username:un,display_name:un,avatar_color:cols[Math.floor(Math.random()*cols.length)]})
+        .select().single());
+      if(!n)throw new Error('no data');
+      me=n;
+    }catch(e){
+      LL.log('error','auth','profile_insert_failed',{msg:e.message});
+      toast('Erreur de création du profil. Réessayez.','error',6000);
       await sb.auth.signOut();
       showSc('s-auth');hideL();return;
     }
-    me=n;
   }
-  if(!me){
-    LL.log('error','auth','profile_null_after_load');
-    toast('Erreur de chargement du profil. Rechargez la page.','error',6000);
-    showSc('s-auth');hideL();return;
-  }
+
   A.me=me;
   await setupKeys();
-  const{data:couple}=await sb.from('couples').select('*').or('partner1_id.eq.'+user.id+',partner2_id.eq.'+user.id).maybeSingle();
+
+  let couple;
+  try{
+    const{data}=await withTO(sb.from('couples').select('*').or('partner1_id.eq.'+user.id+',partner2_id.eq.'+user.id).maybeSingle());
+    couple=data;
+  }catch(e){
+    LL.log('error','auth','couple_load_failed',{msg:e.message});
+    toast('Chargement foyer échoué. Réessayez.','error',6000);
+    showSc('s-auth');hideL();return;
+  }
+
   if(couple){A.couple=couple;await loadPartner();await buildKey();launchApp();}
   else{showSc('s-couple');hideL();}
 }
@@ -1765,14 +1786,14 @@ async function onAuth(user){
 async function setupKeys(){
   const uid=A.user.id;
   let privB=await E2E.loadK(uid);
-  const{data:p}=await sb.from('profiles').select('public_key').eq('id',uid).single();
+  const{data:p}=await withTO(sb.from('profiles').select('public_key').eq('id',uid).single()).catch(()=>({data:null}));
 
   if(!privB||!p?.public_key){
     // Première fois sur cet appareil — générer une paire
     LL.log('info','crypto','generating_new_keypair');
     const kp=await E2E.gen();
     await E2E.saveK(uid,kp.priv);
-    const{error}=await sb.from('profiles').update({public_key:kp.pub}).eq('id',uid);
+    const{error}=await withTO(sb.from('profiles').update({public_key:kp.pub}).eq('id',uid)).catch(e=>({error:e}));
     if(error){
       LL.log('error','crypto','failed_to_store_public_key',{message:error.message});
       toast('Erreur initialisation clés E2E','error');
@@ -1787,8 +1808,6 @@ async function setupKeys(){
     A._myPubKey=p.public_key;
     const lastRotation=localStorage.getItem('ll-key-rotation-'+uid);
     if(!lastRotation){
-      // localStorage vidé (reinstall/clear data) mais clé IndexedDB existe — NE PAS régénérer
-      // Juste re-marquer la date pour éviter une fausse rotation
       await E2E.markRotated(uid);
       LL.log('info','crypto','rotation_timestamp_restored');
     } else {
@@ -1797,7 +1816,7 @@ async function setupKeys(){
         LL.log('info','crypto','rotating_identity_key');
         const kp=await E2E.gen();
         await E2E.saveK(uid,kp.priv);
-        const{error}=await sb.from('profiles').update({public_key:kp.pub}).eq('id',uid);
+        const{error}=await withTO(sb.from('profiles').update({public_key:kp.pub}).eq('id',uid)).catch(e=>({error:e}));
         if(!error){
           privB=kp.priv;
           A._myPubKey=kp.pub;
@@ -1932,7 +1951,7 @@ async function loadPartner(){
   if(!A.couple)return;
   const pid=A.couple.partner1_id===A.user.id?A.couple.partner2_id:A.couple.partner1_id;
   if(!pid)return;
-  const{data}=await sb.from('profiles').select('*').eq('id',pid).single();
+  const{data}=await withTO(sb.from('profiles').select('*').eq('id',pid).single()).catch(()=>({data:null}));
   A.partner=data;
 }
 
@@ -3655,7 +3674,9 @@ async function sendMediaMsg(file,mediaType,mediaDuration){
     A.msgs=A.msgs.filter(m=>m.id!==tmpId);renderMsgs();
   }catch(e){
     A.msgs=A.msgs.filter(m=>m.id!==tmpId);renderMsgs();
-    toast('Erreur envoi: '+e.message,'error');
+    const msg=e.message||'erreur inconnue';
+    LL.log('error','media','send_failed',{msg});
+    toast('Envoi échoué: '+msg,'error',7000);
   }
 }
 
@@ -4499,7 +4520,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.2 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.3 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
