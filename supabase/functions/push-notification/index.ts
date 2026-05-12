@@ -6,9 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Called from DB triggers or other edge functions, NOT from the client directly
+// Called from DB triggers (X-Push-Secret header) or authenticated users
 // Requires ONESIGNAL_APP_ID + ONESIGNAL_API_KEY in Supabase secrets
 // supabase secrets set ONESIGNAL_APP_ID=your_app_id ONESIGNAL_API_KEY=your_api_key
+
+// Internal secret for DB trigger calls (stored in _app_config table)
+const INTERNAL_SECRET = "ll-push-7K9mX2vN5pQ8wR3jL6hY1tF4cB0sZ";
 
 interface PushPayload {
   couple_id: string;
@@ -23,26 +26,30 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // Only accept internal calls (service-role key)
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response("Unauthorized", { status: 401 });
+    const authHeader = req.headers.get("Authorization") || "";
+    const pushSecret = req.headers.get("X-Push-Secret") || "";
+
+    const isInternalCall = pushSecret === INTERNAL_SECRET;
+    const isServiceRole = authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+
+    let isAuthorized = isInternalCall || isServiceRole;
+
+    if (!isAuthorized) {
+      const sbUser = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user } } = await sbUser.auth.getUser();
+      isAuthorized = !!user;
+    }
+
+    if (!isAuthorized) return new Response("Unauthorized", { status: 401 });
 
     const sb = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-
-    // Verify caller has service_role (internal call only)
-    const sbUser = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await sbUser.auth.getUser();
-    // Accept both authenticated users and internal service calls
-    if (!user && !authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)) {
-      return new Response("Unauthorized", { status: 401 });
-    }
 
     const payload: PushPayload = await req.json();
     const { couple_id, exclude_user_id, title, body, category, data: extraData } = payload;
