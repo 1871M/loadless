@@ -179,7 +179,7 @@ Ou via `capacitor.config.json` si le plugin Screen Security est disponible.
 | `update_transaction_secure` | ✅ | Recalcul delta atomique, vérifie compte dans même couple |
 | `delete_transaction_secure` | ✅ | Reverse delta avant suppression |
 | `rotate_invite_code` | ✅ | Restreint à partner1 uniquement |
-| `delete_my_account` | ⚠️ | Supprime profil (cascade) mais auth.users reste orphelin. Comment dans RPC dit "sous 24h" — pas de cron implémenté. |
+| `delete_my_account` | ✅ | **FIXED** — `cleanup_orphaned_auth_users()` + pg_cron quotidien 4h. Supprime auth.users sans profil après 24h de grâce. |
 | `get_messages_page` | ✅ | Vérifie is_couple_member, limite 100 max |
 | `get_transactions_page` | ✅ | Vérifie is_couple_member, limite 100 max |
 | `delete_expired_messages` | ✅ | **FIXED** — `SECURITE_PATCH.sql` configure pg_cron toutes les heures. |
@@ -199,14 +199,4 @@ Ou via `capacitor.config.json` si le plugin Screen Security est disponible.
 | Permissions Android | 10/10 | FLAG_SECURE actif (MainActivity.kt). POST_NOTIFICATIONS déclaré. Permissions runtime via Capacitor. |
 | Logs / Audit | 10/10 | auditLog → Supabase security_logs avec whitelist. |
 
-**Score global : 9.6/10**
-
-> ℹ️ Score 10/10 : reste uniquement le cron nettoyage auth.users orphelins (non critique).
-
----
-
-## Remédiation restante
-
-| Priorité | Action | Effort |
-|----------|--------|--------|
-| ℹ️ | Cron nettoyage auth.users orphelins post `delete_my_account()` | Moyen |
+**Score global : 10/10** ✅

@@ -224,5 +224,29 @@ end;
 $$;
 
 -- ══════════════════════════════════════════════
+--  6. NETTOYAGE AUTH.USERS ORPHELINS
+--  Supprime les comptes auth sans profil correspondant
+--  (résidu après delete_my_account si cascade incomplète)
+-- ══════════════════════════════════════════════
+
+create or replace function cleanup_orphaned_auth_users()
+returns void language plpgsql security definer set search_path = auth, public as $$
+begin
+  -- Grace period 24h : évite de supprimer un user en cours d'inscription
+  -- (auth.users créé avant le profil dans le flow Supabase)
+  delete from auth.users
+  where id not in (select id from public.profiles)
+    and created_at < now() - interval '24 hours';
+end;
+$$;
+
+-- Chaque jour à 4h du matin
+select cron.schedule(
+  'cleanup-orphaned-auth-users',
+  '0 4 * * *',
+  'select cleanup_orphaned_auth_users()'
+);
+
+-- ══════════════════════════════════════════════
 --  FIN — LoadLess SECURITE_PATCH v2
 -- ══════════════════════════════════════════════
