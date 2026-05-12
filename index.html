@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Loadless">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=()">
@@ -35,6 +35,7 @@
 </style>
 <script src="/assets/lib/supabase.min.js" integrity="sha256-U5uxwocnDRuaZGtKt6u8XeZ/GXMsR570wzovGIyeSlw=" crossorigin="anonymous"></script>
 <script src="/assets/lib/qrcode.min.js" integrity="sha256-uyNl5JAvT4SFLPQCXm9qYDJaaCrq+kP7Y7f8jwmNHvI=" crossorigin="anonymous"></script>
+<script src="/assets/lib/argon2.min.js" integrity="sha256-QTIr0kDhatFgQR20ku9OHDWUIOqpv6Qb6A8phxXDNns=" crossorigin="anonymous"></script>
 <style>
 :root{
   /* Palette Loadless — mockup exact */
@@ -5067,13 +5068,20 @@ const BackupManager={
     const pwd=await BackupManager._promptPwd('Choisissez un mot de passe pour chiffrer la sauvegarde :','Exporter');
     if(!pwd)return;
     try{
-      const payload={v:1,date:new Date().toISOString(),tasks:A.tasks||[],shop:A.shop||[],accounts:A.accounts||[],txs:A.txs||[],calEvents:A.calEvents||[],meals:A.meals||{}};
+      if(typeof argon2==='undefined')throw new Error('argon2 non chargé — rechargez la page.');
+      const payload={v:2,date:new Date().toISOString(),tasks:A.tasks||[],shop:A.shop||[],accounts:A.accounts||[],txs:A.txs||[],calEvents:A.calEvents||[],meals:A.meals||{}};
       const salt=crypto.getRandomValues(new Uint8Array(16));
       const iv=crypto.getRandomValues(new Uint8Array(12));
-      const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
-      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt']);
+      // Argon2id : 64 MB RAM, 3 itérations — résistant GPU/ASIC
+      const result=await argon2.hash({
+        pass:pwd,salt,
+        type:argon2.ArgonType.Argon2id,
+        mem:65536,time:3,hashLen:32,parallelism:1,
+        wasmPath:'/assets/lib/argon2.wasm'
+      });
+      const key=await crypto.subtle.importKey('raw',result.hash,{name:'AES-GCM',length:256},false,['encrypt']);
       const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(payload)));
-      const file=JSON.stringify({v:1,salt:b64e(salt),iv:b64e(iv),data:b64e(new Uint8Array(enc))});
+      const file=JSON.stringify({v:2,kdf:'argon2id',mem:65536,time:3,salt:b64e(salt),iv:b64e(iv),data:b64e(new Uint8Array(enc))});
       const blob=new Blob([file],{type:'application/json'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');a.href=url;a.download='loadless-backup-'+new Date().toISOString().slice(0,10)+'.llbk';a.click();URL.revokeObjectURL(url);
@@ -5086,7 +5094,7 @@ const BackupManager={
     if(!file)return;
     let envelope;
     try{envelope=JSON.parse(await file.text());}catch{toast('Fichier invalide.','error');return;}
-    if(envelope.v!==1||!envelope.salt||!envelope.iv||!envelope.data){toast('Format non reconnu.','error');return;}
+    if(![1,2].includes(envelope.v)||!envelope.salt||!envelope.iv||!envelope.data){toast('Format non reconnu.','error');return;}
     const pwd=await BackupManager._promptPwd('Mot de passe de la sauvegarde :','Déchiffrer');
     if(!pwd)return;
     let payload;
@@ -5094,8 +5102,22 @@ const BackupManager={
       const salt=Uint8Array.from(atob(envelope.salt),c=>c.charCodeAt(0));
       const iv=Uint8Array.from(atob(envelope.iv),c=>c.charCodeAt(0));
       const ct=Uint8Array.from(atob(envelope.data),c=>c.charCodeAt(0));
-      const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
-      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+      let key;
+      if(envelope.v===2){
+        // v:2 — Argon2id
+        if(typeof argon2==='undefined')throw new Error('argon2 non chargé — rechargez la page.');
+        const result=await argon2.hash({
+          pass:pwd,salt,
+          type:argon2.ArgonType.Argon2id,
+          mem:envelope.mem||65536,time:envelope.time||3,hashLen:32,parallelism:1,
+          wasmPath:'/assets/lib/argon2.wasm'
+        });
+        key=await crypto.subtle.importKey('raw',result.hash,{name:'AES-GCM',length:256},false,['decrypt']);
+      }else{
+        // v:1 — PBKDF2 legacy (backward compat)
+        const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
+        key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+      }
       payload=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct)));
     }catch{toast('Mot de passe incorrect ou fichier corrompu.','error');return;}
     const counts=[(payload.tasks||[]).length+' tâches',(payload.shop||[]).length+' articles',(payload.accounts||[]).length+' comptes',(payload.txs||[]).length+' transactions',(payload.calEvents||[]).length+' événements'].join(', ');

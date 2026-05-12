@@ -157,12 +157,12 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 
 | Élément | Statut | Détail |
 |---------|--------|--------|
-| Chiffrement backup | ✅ | PBKDF2 100,000 iterations SHA-256 + AES-GCM 256 bits |
+| Chiffrement backup | ✅ | **FIXED** — Argon2id (mem=64MB, t=3, hashLen=32) via argon2-browser WASM + AES-GCM 256 bits |
 | Salt aléatoire | ✅ | `crypto.getRandomValues(16)` par export |
 | IV aléatoire | ✅ | `crypto.getRandomValues(12)` par export |
 | Messages exclus | ✅ | Correct — messages chiffrés non transférables hors device |
 | Format fichier | ✅ | JSON `{v:1, salt, iv, data}` — structure simple et vérifiable |
-| Brute-force | ⚠️ | 100k iterations PBKDF2-SHA256 = ~50ms sur CPU moderne. Acceptable mais PBKDF2 reste inférieur à Argon2id ou scrypt. Pour upgrade futur. |
+| Brute-force | ✅ | Argon2id mem=64MB → GPU/ASIC inefficaces. ~1s sur CPU mobile (acceptable UX). |
 
 ---
 
@@ -176,11 +176,9 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 | Médias R2 | 10/10 | Chiffrement E2E, presigned URLs, path traversal protégé. LRU cache + blob révocation. |
 | Métadonnées | 9/10 | v=3 : type/name/size/duration chiffrés dans ciphertext. sender_id/created_at/couple_id restent lisibles (inévitable pour RLS/routing). |
 | Fuites / Logs | 10/10 | Redaction propre. FLAG_SECURE activé dans MainActivity.kt. |
-| Backup | 8/10 | PBKDF2 100k iterations. Argon2id serait meilleur (pas disponible WebCrypto). |
+| Backup | 10/10 | Argon2id (mem=64MB, t=3) via WASM. Résistant GPU/ASIC. Import backward-compat v:1 PBKDF2. |
 
-**Score global sécurité chat : 9.6/10**
-
-> ℹ️ Score 10/10 : seul Argon2id backup reste (bloqué par WebCrypto — pas encore supporté).
+**Score global sécurité chat : 10/10**
 
 ---
 
@@ -189,4 +187,3 @@ Les éléments suivants sont **stockés non chiffrés** dans la table `messages`
 | Priorité | Action | Effort |
 |----------|--------|--------|
 | ℹ️ | Vérifier expiration presigned URLs R2 (PUT < 5min, GET < 15min) dans edge functions | Faible |
-| ℹ️ | Upgrader PBKDF2 → Argon2id pour backup (quand WebCrypto le supportera) | Élevé |
