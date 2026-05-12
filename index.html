@@ -2157,7 +2157,8 @@ async function decryptMsgs(){
 async function _registerPushToken(){
   if(typeof Capacitor==='undefined'||!Capacitor.isNativePlatform())return;
   try{
-    const{PushNotifications}=await import('@capacitor/push-notifications');
+    const PushNotifications=Capacitor.Plugins.PushNotifications;
+    if(!PushNotifications)return;
     const perm=await PushNotifications.requestPermissions();
     if(perm.receive!=='granted')return;
     await PushNotifications.register();
