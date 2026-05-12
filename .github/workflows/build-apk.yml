@@ -60,22 +60,32 @@ jobs:
         run: |
           # Sauvegarde des fichiers custom trackés dans git
           mkdir -p /tmp/android-custom/app/src/main/res/xml
+          mkdir -p /tmp/android-custom/app/src/main/java/fr/loadless/app
           cp android/app/src/main/AndroidManifest.xml \
             /tmp/android-custom/app/src/main/AndroidManifest.xml 2>/dev/null || true
           cp android/app/src/main/res/xml/file_paths.xml \
             /tmp/android-custom/app/src/main/res/xml/file_paths.xml 2>/dev/null || true
           cp android/app/src/main/res/xml/network_security_config.xml \
             /tmp/android-custom/app/src/main/res/xml/network_security_config.xml 2>/dev/null || true
+          cp android/app/src/main/java/fr/loadless/app/MainActivity.kt \
+            /tmp/android-custom/app/src/main/java/fr/loadless/app/MainActivity.kt 2>/dev/null || true
+          cp android/app/google-services.json \
+            /tmp/android-custom/app/google-services.json 2>/dev/null || true
           # Suppression du dossier partiel puis recréation complète
           rm -rf android
           npx cap add android
-          # Restauration des fichiers custom (AndroidManifest sans GAFAM, file_paths, network_security)
+          # Restauration des fichiers custom
           cp /tmp/android-custom/app/src/main/AndroidManifest.xml \
             android/app/src/main/AndroidManifest.xml
           cp /tmp/android-custom/app/src/main/res/xml/file_paths.xml \
             android/app/src/main/res/xml/file_paths.xml
           cp /tmp/android-custom/app/src/main/res/xml/network_security_config.xml \
             android/app/src/main/res/xml/network_security_config.xml
+          mkdir -p android/app/src/main/java/fr/loadless/app
+          cp /tmp/android-custom/app/src/main/java/fr/loadless/app/MainActivity.kt \
+            android/app/src/main/java/fr/loadless/app/MainActivity.kt
+          cp /tmp/android-custom/app/google-services.json \
+            android/app/google-services.json
 
       - name: Inject custom launcher icons into Android
         run: |
