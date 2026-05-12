@@ -2835,7 +2835,7 @@ function renderBudget(){
     const sel=ac.id===A.selAc;
     const d=document.createElement('div');d.className='ac-card'+(sel?' sel':'');
     if(sel){d.style.borderColor=ac.color;d.style.boxShadow='0 0 0 2px '+ac.color+'44';}
-    d.innerHTML='<div class="ac-ty">'+({courant:'💳 Courant',epargne:'🏦 Épargne',especes:'💵 Espèces'}[ac.type]||ac.type)+'</div>'+'<div class="ac-nm">'+esc(ac.name)+'</div>'+'<div class="ac-bl" style="color:'+ac.color+';font-family:Lora,serif">'+fmtE(Number(ac.balance))+'</div>'+'<div style="font-size:10px;color:var(--muted);margin-top:6px;cursor:pointer" onclick="event.stopPropagation();editAccount(\''+ac.id+'\')">✏️ Modifier</div>';
+    d.innerHTML='<div class="ac-ty">'+({courant:'💳 Courant',epargne:'🏦 Épargne',especes:'💵 Espèces'}[ac.type]||ac.type)+'</div>'+'<div class="ac-nm">'+esc(ac.name)+'</div>'+'<div class="ac-bl" style="color:'+ac.color+';font-family:Lora,serif">'+fmtE(Number(ac.balance))+'</div>'+'<div style="display:flex;gap:6px;margin-top:6px">'+'<span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="event.stopPropagation();editAccount(\''+ac.id+'\')">✏️ Modifier</span>'+'<span style="font-size:10px;color:var(--red);cursor:pointer" id="del-ac-btn-'+ac.id+'" onclick="event.stopPropagation();deleteAccountConfirm(\''+ac.id+'\',\''+esc(ac.name)+'\')">🗑️ Supprimer</span>'+'</div>';
     d.onclick=()=>{A.selAc=ac.id;renderBudget();};ar.appendChild(d);
   });
   const ab=document.createElement('button');ab.className='btn-ac';ab.innerHTML='＋<span>Compte</span>';ab.onclick=()=>{_editAcId=null;document.querySelector('#mo-ac .mo-tt').textContent='Ajouter un compte';openM('mo-ac');};ar.appendChild(ab);
@@ -3153,6 +3153,37 @@ async function saveAccount(){
   }catch(e){toast('Erreur inattendue: '+e.message,'error');}
 }
 
+const _deleteAcState=new Map();
+async function deleteAccountConfirm(id,name){
+  const state=_deleteAcState.get(id)||0;
+  if(state===0){
+    _deleteAcState.set(id,1);
+    const btn=document.getElementById('del-ac-btn-'+id);
+    if(btn){btn.textContent='⚠️ Êtes-vous sûr ?';btn.style.fontWeight='700';}
+    setTimeout(()=>{
+      _deleteAcState.delete(id);
+      const b=document.getElementById('del-ac-btn-'+id);
+      if(b){b.textContent='🗑️ Supprimer';b.style.fontWeight='';}
+    },5000);
+    return;
+  }
+  _deleteAcState.delete(id);
+  if(!confirm('Confirmer définitivement la suppression de "'+name+'" ?'))return;
+  const keepHistory=confirm('Que faire des transactions liées ?\n\n[OK] Garder l\'historique (transactions conservées)\n[Annuler] Tout supprimer (transactions effacées)');
+  try{
+    if(!keepHistory){
+      const{error:txErr}=await sb.from('transactions').delete().eq('account_id',id);
+      if(txErr){toast('Erreur suppression transactions: '+txErr.message,'error');return;}
+    }
+    const{error}=await sb.from('accounts').delete().eq('id',id);
+    if(error){toast('Erreur: '+error.message,'error');return;}
+    A.accounts=A.accounts.filter(x=>x.id!==id);
+    if(A.selAc===id)A.selAc=A.accounts[0]?.id||null;
+    toast(keepHistory?'Compte supprimé (historique conservé).':'Compte et transactions supprimés.','success');
+    renderBudget();
+  }catch(e){toast('Erreur inattendue: '+e.message,'error');}
+}
+
 /* ═══ MEALS ═══ */
 let _mT={day:null,slot:2};
 
@@ -3272,7 +3303,6 @@ async function addIngrToShop(){
 /* ═══ CHAT E2E ═══ */
 let _eph=false;
 let _ephPressTimer=null;
-function togEph(){_eph=!_eph;document.getElementById('ch-eb').style.display=_eph?'flex':'none';const btn=document.getElementById('ch-sd-btn');if(btn)btn.style.background=_eph?'var(--gold)':'var(--p1d)';}
 function chSdPressStart(e){_ephPressTimer=setTimeout(()=>{_ephPressTimer=null;togEph();},600);}
 function chSdPressEnd(e){if(_ephPressTimer){clearTimeout(_ephPressTimer);_ephPressTimer=null;}}
 function renderMsgs(){
@@ -3386,7 +3416,7 @@ async function sendMsg(){
     iv:enc.iv,
     version:1
   };
-  if(_eph)payload.expires_at=new Date(Date.now()+86400000).toISOString();
+  if(_eph)payload.expires_at=new Date(Date.now()+_ephDur).toISOString();
 
   const{error}=await sb.from('messages').insert(payload);
   if(error){
@@ -3478,7 +3508,7 @@ async function sendMediaMsg(file,mediaType,mediaDuration){
     const{key,iv}=await _uploadMedia(upload);
     const payload={couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv,version:2,
       media_url:key,media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null};
-    if(_eph)payload.expires_at=new Date(Date.now()+86400000).toISOString();
+    if(_eph)payload.expires_at=new Date(Date.now()+_ephDur).toISOString();
     const{error}=await sb.from('messages').insert(payload);
     if(error)throw new Error(error.message);
     A.msgs=A.msgs.filter(m=>m.id!==tmpId);renderMsgs();
@@ -3771,8 +3801,8 @@ function calcEquity(){
     durMe:durTMe,durPt:durTPt,
     avMe,avPt,realAvMe:Math.round(realAvMe*10)/10,realAvPt:Math.round(realAvPt*10)/10};
 }
-function renderEquity(){
-  const el=document.getElementById('p-equity');
+function renderEquity(targetId){
+  const el=document.getElementById(targetId||'p-equity');
   const me=A.me,pt=A.partner;if(!me){el.innerHTML='<div class="empty"><div class="ei">⚖️</div><p>Chargement…</p></div>';return;}
   const eq=calcEquity();
   const avMe=A.avail[me.id]||DEFAULT_AVAIL_HOURS,avPt=A.avail[pt?.id]||DEFAULT_AVAIL_HOURS;
@@ -3975,8 +4005,53 @@ function setEphDur(v){
 }
 function togEph(){
   A.eph=!A.eph;
+  _eph=A.eph;
   document.getElementById('ch-et')?.classList.toggle('on',A.eph);
   document.getElementById('ch-eb').style.display=A.eph?'flex':'none';
+  const btn=document.getElementById('ch-sd-btn');
+  if(btn)btn.style.background=_eph?'var(--gold)':'var(--p1d)';
+}
+function setEphSetting(v){
+  const prefs=JSON.parse(localStorage.getItem('ll-prefs')||'{}');
+  const customDiv=document.getElementById('st-eph-custom');
+  if(v==='off'){
+    prefs.ephDur='off';
+    _eph=false;A.eph=false;
+    if(customDiv)customDiv.style.display='none';
+    toast('Messages éphémères désactivés','info',1500);
+  } else if(v==='custom'){
+    if(customDiv)customDiv.style.display='block';
+    return;
+  } else {
+    prefs.ephDur=v;
+    _eph=true;A.eph=true;
+    _ephDur=parseInt(v);
+    if(customDiv)customDiv.style.display='none';
+    toast('Messages éphémères activés ✓','success',1500);
+  }
+  localStorage.setItem('ll-prefs',JSON.stringify(prefs));
+  const chEb=document.getElementById('ch-eb');
+  if(chEb)chEb.style.display=_eph?'flex':'none';
+  const btn=document.getElementById('ch-sd-btn');
+  if(btn)btn.style.background=_eph?'var(--gold)':'var(--p1d)';
+  const chEt=document.getElementById('ch-et');
+  if(chEt)chEt.classList.toggle('on',A.eph);
+}
+function applyEphCustom(val){
+  const hours=parseFloat(val);
+  if(!hours||hours<=0)return;
+  const ms=Math.round(hours*3600000);
+  _eph=true;A.eph=true;_ephDur=ms;
+  const prefs=JSON.parse(localStorage.getItem('ll-prefs')||'{}');
+  prefs.ephDur=String(ms);
+  localStorage.setItem('ll-prefs',JSON.stringify(prefs));
+  const chEb=document.getElementById('ch-eb');
+  if(chEb)chEb.style.display='flex';
+  const btn=document.getElementById('ch-sd-btn');
+  if(btn)btn.style.background='var(--gold)';
+  const chEt=document.getElementById('ch-et');
+  if(chEt)chEt.classList.add('on');
+  toast('Durée personnalisée appliquée ✓','success',1500);
 }
 
 // ✅ Afficher fingerprint + QR code pour vérification hors-ligne
@@ -4101,6 +4176,17 @@ function renderSettings(){
   const prefs=(()=>{try{return JSON.parse(localStorage.getItem('ll-prefs')||'{}');}catch{return{};}})();
   const hapt=prefs.haptics!==false;
   const curLang=prefs.lang||'fr';
+  const curEphDur=prefs.ephDur||'off';
+  const ephOptions=[
+    {v:'off',l:'Off (désactivé)'},
+    {v:'3600000',l:'1h'},
+    {v:'86400000',l:'24h'},
+    {v:'604800000',l:'7j'},
+    {v:'2592000000',l:'30j'},
+    {v:'custom',l:'Personnalisé'},
+  ];
+  const ephSel=ephOptions.map(o=>`<option value="${o.v}"${o.v===curEphDur?' selected':''}>${o.l}</option>`).join('');
+  const ephCustomVisible=curEphDur!=='off'&&!ephOptions.slice(0,-1).find(o=>o.v===curEphDur);
   const langs=[
     {v:'fr',l:'🇫🇷 Français'},
     {v:'en',l:'🇬🇧 English'},
@@ -4169,11 +4255,29 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">🔒 Sécurité</div>'
       +'<div class="st-rw" onclick="showFingerprint()" role="button" tabindex="0"><span class="st-ri">🔑</span><div class="st-rf"><div class="st-rt">Clés de sécurité E2E</div><div class="st-rs" style="color:'+keyColor+';font-weight:600">'+keyState+'</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="BackupManager.exportBackup()" role="button" tabindex="0"><span class="st-ri">📤</span><div class="st-rf"><div class="st-rt">Exporter la sauvegarde</div><div class="st-rs">Fichier chiffré AES-256</div></div><span class="st-ra">›</span></div>'
+      +'<div style="border-top:1px solid var(--border2)">'
+        +'<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;min-height:44px">'
+          +'<span class="st-ri">⏱</span>'
+          +'<div class="st-rf" style="flex:1"><div class="st-rt">Messages éphémères</div><div class="st-rs">Suppression automatique après envoi</div></div>'
+          +'<select id="st-eph-dur" onchange="setEphSetting(this.value)" style="background:var(--bg);border:1.5px solid var(--border2);border-radius:11px;padding:7px 10px;font-size:13px;font-family:\'Inter\',\'UI\',sans-serif;color:var(--ink);outline:none;cursor:pointer">'+ephSel+'</select>'
+        +'</div>'
+        +'<div id="st-eph-custom" style="display:'+(ephCustomVisible?'block':'none')+';padding:0 16px 14px 48px">'
+          +'<input id="st-eph-custom-val" type="number" min="1" placeholder="Durée en heures…" '
+            +'style="width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:11px;padding:10px 14px;font-size:14px;font-family:\'Inter\',\'UI\',sans-serif;color:var(--ink);outline:none;transition:border-color .2s" '
+            +'onchange="applyEphCustom(this.value)">'
+          +'<div style="font-size:11px;color:var(--muted);margin-top:6px">Durée en heures avant suppression</div>'
+        +'</div>'
+      +'</div>'
       +'<div style="padding:8px 16px 12px;font-size:11px;color:var(--muted);line-height:1.6">💡 Vos messages sont chiffrés sur votre appareil avant d\'être envoyés.</div>'
     +'</div>'
 
     // ── COMPTE ──
     +'<div class="st-sc"><div class="st-st">👤 Compte</div>'
+      +(couple&&!A.partner
+        ?'<div class="st-rw" onclick="rotateInviteCode()" role="button" tabindex="0"><span class="st-ri">🔄</span><div class="st-rf"><div class="st-rt">Régénérer mon code d\'invitation</div><div class="st-rs">L\'ancien code deviendra invalide</div></div><span class="st-ra">›</span></div>'
+        :couple&&A.partner
+          ?'<div class="st-rw" style="cursor:default"><span class="st-ri">🔗</span><div class="st-rf"><div class="st-rt">Partenaire lié</div><div class="st-rs" style="color:var(--green);font-weight:600">✓ '+esc(A.partner.username)+'</div></div></div>'
+          :'')
       +'<div class="st-rw" onclick="doSignOut()" role="button" tabindex="0"><span class="st-ri">🚪</span><div class="st-rf"><div class="st-rt">Se déconnecter</div><div class="st-rs">'+esc(A.user?.email||'')+'</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="delAccount()" role="button" tabindex="0" style="color:var(--red)"><span class="st-ri">🗑️</span><div class="st-rf"><div class="st-rt">Supprimer mon compte</div><div class="st-rs">Action irréversible</div></div><span class="st-ra">›</span></div>'
     +'</div>'
@@ -4185,12 +4289,19 @@ function renderSettings(){
       +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.4 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
+    // ── ÉQUITÉ ──
+    +'<div class="st-sc"><div class="st-st">⚖️ Équité & disponibilité</div>'
+      +'<div id="st-equity-section" style="padding:4px 0 8px"></div>'
+    +'</div>'
+
     +'<div style="text-align:center;padding:12px 16px 28px"><a href="https://github.com/1871M/loadless/releases/latest" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--p1b);border:1.5px solid var(--p1m);border-radius:12px;font-size:13px;font-weight:700;color:var(--p1d);text-decoration:none">📱 Télécharger l\'APK</a></div>'
     +'<div style="text-align:center;padding:0 16px 32px;font-size:10px;color:var(--faint)">🔒 E2E · Supabase RLS · Build '+new Date().toISOString().slice(0,10)+'</div>'
     +'</div>';
 
   // Appliquer les préférences au DOM (au cas où)
   applyPrefs();
+  // Render equity inline
+  renderEquity('st-equity-section');
 }
 
 /* ═══ PRÉFÉRENCES UTILISATEUR ═══ */
@@ -4208,6 +4319,11 @@ function applyPrefs(){
   document.documentElement.classList.add('high-contrast'); // toujours activé
   document.documentElement.classList.toggle('large-text',prefs.largeText===true);
   document.documentElement.classList.toggle('dark',prefs.darkMode===true);
+  // Restore ephemeral setting
+  if(prefs.ephDur&&prefs.ephDur!=='off'){
+    _eph=true;A.eph=true;
+    _ephDur=parseInt(prefs.ephDur)||86400000;
+  }
 }
 
 /* ═══ ÉDITION PROFIL ═══ */
@@ -4318,11 +4434,12 @@ async function saveProfile(){
 
 // ✅ Rotation du code d'invitation via RPC sécurisée
 async function rotateInviteCode(){
-  if(!confirm('Régénérer le code ? L\'ancien ne fonctionnera plus.'))return;
+  if(!A.couple){toast('Aucun foyer trouvé.','error');return;}
+  if(A.partner){toast('Impossible de régénérer : un partenaire est déjà lié.','error');return;}
+  if(!confirm('Régénérer le code d\'invitation ?\n\nL\'ancien code deviendra invalide immédiatement.'))return;
   const{data,error}=await sb.rpc('rotate_invite_code',{p_couple_id:A.couple.id});
   if(error){toast('Erreur: '+error.message,'error');return;}
   if(data?.error){toast(data.message||'Erreur','error');return;}
-  // Mettre à jour localement
   A.couple.invite_code=data.invite_code;
   A.couple.invite_expires_at=data.expires_at;
   toast('Nouveau code généré !','success');
