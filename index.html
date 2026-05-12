@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Loadless">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=()">
@@ -1409,13 +1409,15 @@ const LL = (() => {
     return JSON.stringify(getEvents(), null, 2);
   }
 
-  // ✅ Audit trail sécurité — actions sensibles tracées
+  // ✅ Audit trail sécurité — actions sensibles tracées et envoyées à Supabase
   function auditLog(action, detail={}){
     const entry={ts:new Date().toISOString(),action,detail:sanitizePayload(detail),
       session:typeof A!=='undefined'?A.user?.id?.slice(0,8):'?'};
     log('info','audit',action,entry);
-    // En prod, on pourrait envoyer à Supabase security_logs
-    // mais on garde côté client pour ne pas exposer les patterns d'usage
+    // Envoi durable à Supabase security_logs (whitelist côté RPC)
+    if(typeof sb!=='undefined'&&typeof A!=='undefined'&&A.user){
+      sb.rpc('log_audit_event',{p_action:action,p_detail:sanitizePayload(detail)}).catch(()=>{});
+    }
   }
 
   // Capturer les erreurs globales non gérées
@@ -1473,12 +1475,12 @@ const E2E={
   },
 
   // ── Génération de clé de session éphémère (PFS) ───────────
+  // privKey = non-extractable → jamais sérialisable, en mémoire uniquement
   async genSession(){
     const kp=await crypto.subtle.generateKey(
-      {name:'ECDH',namedCurve:'P-256'},true,['deriveKey']
+      {name:'ECDH',namedCurve:'P-256'},false,['deriveKey','deriveBits']
     );
     const pu=await crypto.subtle.exportKey('spki',kp.publicKey);
-    const pr=await crypto.subtle.exportKey('pkcs8',kp.privateKey);
     return{pub:b64e(pu),privKey:kp.privateKey,pubB64:b64e(pu)};
   },
 
@@ -1494,12 +1496,42 @@ const E2E={
     return crypto.subtle.importKey('pkcs8',b,{name:'ECDH',namedCurve:'P-256'},false,['deriveKey']);
   },
 
-  // ── Dérivation ECDH → AES-GCM via HKDF ───────────────────
-  // Plus sûr que dérivation directe — ajoute un salt et un contexte
+  // ── Dérivation ECDH → AES-GCM (legacy — v≤2 backward compat) ─
   async deriv(myPrivKey,theirPubKey){
     return crypto.subtle.deriveKey(
       {name:'ECDH',public:theirPubKey},myPrivKey,
       {name:'AES-GCM',length:256},false,['encrypt','decrypt']
+    );
+  },
+
+  // ── Dérivation ECDH → HKDF → AES-GCM (identity component pour PFS) ─
+  async derivHKDF(myPrivKey,theirPubKey){
+    const bits=await crypto.subtle.deriveBits({name:'ECDH',public:theirPubKey},myPrivKey,256);
+    const hk=await crypto.subtle.importKey('raw',bits,{name:'HKDF'},false,['deriveKey']);
+    return crypto.subtle.deriveKey(
+      {name:'HKDF',hash:'SHA-256',
+       salt:new Uint8Array(32), // fixed zero salt for identity component
+       info:new TextEncoder().encode('loadless-identity-v2')},
+      hk,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+    );
+  },
+
+  // ── Dérivation PFS = HKDF(ECDH_identity || ECDH_session) ─────────
+  // Forward secrecy : compromission clé identité seule insuffisante pour déchiffrer
+  // car la clé session (en mémoire uniquement) est nécessaire
+  async derivPFS(myIdentPriv,theirIdentPub,mySessionPriv,theirSessionPubB64,coupleId){
+    const identBits=await crypto.subtle.deriveBits({name:'ECDH',public:theirIdentPub},myIdentPriv,256);
+    const theirSessPub=await this.impPub(theirSessionPubB64);
+    const sessBits=await crypto.subtle.deriveBits({name:'ECDH',public:theirSessPub},mySessionPriv,256);
+    const combined=new Uint8Array(64);
+    combined.set(new Uint8Array(identBits),0);
+    combined.set(new Uint8Array(sessBits),32);
+    const hk=await crypto.subtle.importKey('raw',combined,{name:'HKDF'},false,['deriveKey']);
+    return crypto.subtle.deriveKey(
+      {name:'HKDF',hash:'SHA-256',
+       salt:new TextEncoder().encode(coupleId), // couple-specific salt
+       info:new TextEncoder().encode('loadless-pfs-v1')},
+      hk,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
     );
   },
 
@@ -1583,44 +1615,10 @@ const E2E={
     localStorage.setItem('ll-key-rotation-'+uid,Date.now().toString());
   },
 
-  // ── Chiffrement localStorage (données sensibles locales) ──
-  // Utilise une clé dérivée du uid + secret app
-  async encryptLocal(data,uid){
-    try{
-      const keyMaterial=await crypto.subtle.importKey(
-        'raw',new TextEncoder().encode(uid+'ll-local-2026'),
-        {name:'PBKDF2'},false,['deriveKey']
-      );
-      const key=await crypto.subtle.deriveKey(
-        {name:'PBKDF2',salt:new TextEncoder().encode('ll-salt-v1'),iterations:10000,hash:'SHA-256'},
-        keyMaterial,{name:'AES-GCM',length:256},false,['encrypt']
-      );
-      const iv=crypto.getRandomValues(new Uint8Array(12));
-      const enc=await crypto.subtle.encrypt(
-        {name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(data))
-      );
-      return b64e(iv)+'|'+b64e(new Uint8Array(enc));
-    }catch{return null;}
-  },
-
-  async decryptLocal(encrypted,uid){
-    try{
-      const[ivB64,ctB64]=encrypted.split('|');
-      if(!ivB64||!ctB64)return null;
-      const keyMaterial=await crypto.subtle.importKey(
-        'raw',new TextEncoder().encode(uid+'ll-local-2026'),
-        {name:'PBKDF2'},false,['deriveKey']
-      );
-      const key=await crypto.subtle.deriveKey(
-        {name:'PBKDF2',salt:new TextEncoder().encode('ll-salt-v1'),iterations:10000,hash:'SHA-256'},
-        keyMaterial,{name:'AES-GCM',length:256},false,['decrypt']
-      );
-      const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));
-      const ct=Uint8Array.from(atob(ctB64),c=>c.charCodeAt(0));
-      const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
-      return JSON.parse(new TextDecoder().decode(plain));
-    }catch{return null;}
-  }
+  // encryptLocal / decryptLocal supprimés — secret hardcodé = sécurité illusoire
+  // Données localStorage non sensibles (préférences uniquement, pas de clés crypto)
+  encryptLocal:async()=>null,
+  decryptLocal:async()=>null
 };
 
 function b64e(buf){return btoa(String.fromCharCode(...(buf instanceof Uint8Array?buf:new Uint8Array(buf))));}
@@ -1628,11 +1626,13 @@ function b64e(buf){return btoa(String.fromCharCode(...(buf instanceof Uint8Array
 /* ═══ STATE ═══ */
 let A={
   user:null,me:null,couple:null,partner:null,sharedKey:null,_pk:null,_sessionKey:null,
+  // PFS session keys (en mémoire uniquement — jamais persistées)
+  pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,
   tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
   wkOff:0,selAc:null,filt:'todo',prio:'low',eTid:null,eph:false,unread:0,avail:{},
   msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true,
-  _rtChannel:null,
-  calEvents:[],calSelected:null,txFilt:'all'  // référence au canal realtime pour unsubscribe propre
+  _rtChannel:null,_pfsChannel:null,
+  calEvents:[],calSelected:null,txFilt:'all',notifPrefs:null
 };
 const CATS={
   menage:{l:'Ménage',i:'🧹',bg:'#EFF6FF',bd:'#BFDBFE'},
@@ -1681,6 +1681,7 @@ async function doLogin(){
     if(error)throw error;
     if(!data.user.email_confirmed_at){
       LL.log('warn','auth','login_unconfirmed_email');
+      await sb.auth.signOut();
       sm('li-m','Confirmez d\'abord votre e-mail.','err');btn.disabled=false;btn.textContent='Se connecter';return;
     }
     LL.log('info','auth','login_success');
@@ -1862,9 +1863,54 @@ async function buildKey(){
     const myPr=await E2E.impPriv(A._pk);
     const thPu=await E2E.impPub(newPubKey);
     A.sharedKey=await E2E.deriv(myPr,thPu);
+    // Initialiser les clés de session PFS (async, ne bloque pas le chat)
+    setupPFS().catch(e=>LL.log('warn','crypto','pfs_init_failed',{msg:e.message}));
   }catch(e){
     A.sharedKey=null;
     toast('Erreur dérivation clé E2E — chat désactivé','error');
+  }
+}
+
+/* ═══ PFS SESSION KEY MANAGEMENT ═══ */
+// Retourne la meilleure clé disponible pour chiffrer
+function _activeKey(){return A.pfsKey||A.sharedKey;}
+// Version du message selon la clé utilisée (3=PFS, 2=identity)
+function _activeVer(){return A.pfsKey?3:2;}
+
+async function setupPFS(){
+  if(!A.couple||!A.user||!A._pk||!A.partner?.public_key)return;
+  try{
+    const eph=await E2E.genSession();
+    A._sessionPrivKey=eph.privKey; // CryptoKey non-extractable, en mémoire uniquement
+    A._sessionPubKey=eph.pub;
+    await sb.from('chat_sessions').upsert({
+      couple_id:A.couple.id,user_id:A.user.id,
+      session_pub_key:eph.pub,
+      expires_at:new Date(Date.now()+86400000).toISOString()
+    },{onConflict:'couple_id,user_id'});
+    await refreshPFSKey();
+    LL.log('info','crypto','pfs_session_published');
+  }catch(e){
+    LL.log('warn','crypto','pfs_setup_failed',{msg:e.message});
+  }
+}
+
+async function refreshPFSKey(){
+  if(!A._sessionPrivKey||!A._pk||!A.partner?.public_key||!A.couple)return;
+  try{
+    const{data:sessions}=await sb.from('chat_sessions')
+      .select('session_pub_key,user_id').eq('couple_id',A.couple.id);
+    const partnerSession=sessions?.find(s=>s.user_id!==A.user.id);
+    if(!partnerSession){A.pfsKey=null;A._pfsReady=false;LL.log('info','crypto','pfs_waiting_partner');return;}
+    const myIdentPriv=await E2E.impPriv(A._pk);
+    const theirIdentPub=await E2E.impPub(A.partner.public_key);
+    A.pfsKey=await E2E.derivPFS(myIdentPriv,theirIdentPub,A._sessionPrivKey,partnerSession.session_pub_key,A.couple.id);
+    A._pfsReady=true;
+    LL.log('info','crypto','pfs_ready');
+    if(document.getElementById('p-chat')?.classList.contains('active'))renderMsgs();
+  }catch(e){
+    A.pfsKey=null;A._pfsReady=false;
+    LL.log('warn','crypto','pfs_refresh_failed',{msg:e.message});
   }
 }
 
@@ -1968,6 +2014,7 @@ async function launchApp(){
   }
 
   setupRT();
+  _registerPushToken().catch(()=>{});
 
   // ✅ Ouvrir l'onglet demandé par le raccourci PWA
   const _pendingTab=sessionStorage.getItem('ll-open-tab');
@@ -2015,6 +2062,12 @@ async function loadAll(){
   // ✅ Messages paginés — 50 les plus récents
   A.raw=[];A.msgs=[];A.msgCursor=null;A.msgHasMore=true;
   await loadMoreMsgs();
+
+  // Préférences notifications
+  if(A.user){
+    const{data:np}=await sb.from('notification_prefs').select('*').eq('user_id',A.user.id).single();
+    A.notifPrefs=np||null;
+  }
 
   await loadMeals();
 }
@@ -2067,23 +2120,54 @@ async function loadMoreTx(){
   if(!e2&&d2){A.txs=[...A.txs,...d2];A.txHasMore=false;}
 }
 
+// Déchiffre un message unique — gère v≤2 (identity key) et v=3 (PFS)
+async function _decryptOneMsg(m){
+  // v≤2 media : ciphertext = placeholder, fileIv = msg.iv
+  if(m.ciphertext==='[MEDIA_ENCRYPTED]')return{...m,txt:null};
+  if(!m.ciphertext||!m.iv)return{...m,txt:'🔒 Message chiffré'};
+  const key=m.version===3?(A.pfsKey||null):A.sharedKey;
+  if(!key)return{...m,txt:'🔒 Message chiffré'};
+  const d=await E2E.dec({ct:m.ciphertext,iv:m.iv},key);
+  if(!d){
+    if(m.version===3)return{...m,txt:null,_pfs_expired:true};
+    return{...m,txt:'🔒 Message chiffré'};
+  }
+  // v=3 peut contenir des métadonnées média chiffrées
+  if(m.version===3){
+    try{
+      const data=JSON.parse(d);
+      if(data._m===1){
+        return{...m,txt:null,media_type:data.t,media_name:data.n,
+               media_size:data.s,media_duration:data.d||0,_fileIv:data.fiv};
+      }
+    }catch{}
+  }
+  return{...m,txt:d};
+}
+
 async function decryptMsgs(){
   A.msgs=[];
   for(const m of A.raw||[]){
-    let txt=null;
-    if(m.media_type){
-      // Message media — pas de déchiffrement texte, contenu chargé à la demande
-    } else if(A.sharedKey&&m.ciphertext&&m.iv){
-      const d=await E2E.dec({ct:m.ciphertext,iv:m.iv},A.sharedKey);
-      txt=d||'🔒 Message chiffré';
-    } else {
-      txt='🔒 Message chiffré';
-    }
-    A.msgs.push({...m,txt});
+    A.msgs.push(await _decryptOneMsg(m));
   }
 }
 
 /* ═══ REALTIME ═══ */
+async function _registerPushToken(){
+  if(typeof Capacitor==='undefined'||!Capacitor.isNativePlatform())return;
+  try{
+    const{PushNotifications}=await import('@capacitor/push-notifications');
+    const perm=await PushNotifications.requestPermissions();
+    if(perm.receive!=='granted')return;
+    await PushNotifications.register();
+    PushNotifications.addListener('registration',async(token)=>{
+      await sb.rpc('upsert_device_token',{p_token:token.value,p_platform:Capacitor.getPlatform()||'android'});
+    });
+  }catch(e){
+    LL.log('warn','push','register_failed',{msg:e.message});
+  }
+}
+
 function setupRT(){
   const cid=A.couple.id;
   if(A._rtChannel){sb.removeChannel(A._rtChannel);}
@@ -2124,18 +2208,9 @@ function setupRT(){
 
     // MESSAGES — INSERT uniquement, jamais de SELECT complet
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'couple_id=eq.'+cid},async p=>{
-      // Eviter doublon si on est l'expéditeur (déjà dans A.msgs via optimistic update)
       if(A.msgs.find(x=>x.id===p.new.id))return;
-      let txt=null;
-      if(p.new.media_type){
-        // Message media — contenu chargé à la demande
-      } else if(A.sharedKey&&p.new.ciphertext&&p.new.iv){
-        const d=await E2E.dec({ct:p.new.ciphertext,iv:p.new.iv},A.sharedKey);
-        txt=d||'🔒 Message chiffré';
-      } else {
-        txt='🔒 Message chiffré';
-      }
-      A.msgs.push({...p.new,txt});
+      const msg=await _decryptOneMsg(p.new);
+      A.msgs.push(msg);
       if(p.new.sender_id!==A.user.id&&!isP('chat')){A.unread++;updBadge();}
       if(isP('chat'))renderMsgs();
     })
@@ -2211,6 +2286,15 @@ function setupRT(){
       if(status==='SUBSCRIBED')LL.log('info','realtime','connected',{couple_id:cid});
       if(status==='CHANNEL_ERROR')LL.log('error','realtime','channel_error',{couple_id:cid});
     });
+
+  // PFS — écouter les changements de clé de session du partenaire
+  if(A._pfsChannel){try{sb.removeChannel(A._pfsChannel);}catch{}}
+  A._pfsChannel=sb.channel('pfs-'+cid)
+    .on('postgres_changes',{event:'*',schema:'public',table:'chat_sessions',filter:'couple_id=eq.'+cid},async p=>{
+      if(p.new?.user_id===A.user.id||p.old?.user_id===A.user.id)return;
+      LL.log('info','crypto','partner_session_key_updated');
+      await refreshPFSKey();
+    }).subscribe();
 }
 
 /* ═══ PAGE ROUTING ═══ */
@@ -3187,14 +3271,12 @@ async function deleteAccountConfirm(id,name){
   if(!confirm('Confirmer définitivement la suppression de "'+name+'" ?'))return;
   const keepHistory=confirm('Que faire des transactions liées ?\n\n[OK] Garder l\'historique (transactions conservées)\n[Annuler] Tout supprimer (transactions effacées)');
   try{
-    if(!keepHistory){
-      const{error:txErr}=await sb.from('transactions').delete().eq('account_id',id);
-      if(txErr){toast('Erreur suppression transactions: '+txErr.message,'error');return;}
-    }
-    const{error}=await sb.from('accounts').delete().eq('id',id);
-    if(error){toast('Erreur: '+error.message,'error');return;}
+    const{data:res,error}=await sb.rpc('delete_account_secure',{p_account_id:id,p_keep_history:keepHistory});
+    if(error||res?.error){toast('Erreur: '+(error?.message||res?.error),'error');return;}
     A.accounts=A.accounts.filter(x=>x.id!==id);
     if(A.selAc===id)A.selAc=A.accounts[0]?.id||null;
+    if(!keepHistory)A.txs=A.txs.filter(t=>t.account_id!==id);
+    else A.txs=A.txs.map(t=>t.account_id===id?{...t,account_id:null}:t);
     toast(keepHistory?'Compte supprimé (historique conservé).':'Compte et transactions supprimés.','success');
     renderBudget();
   }catch(e){toast('Erreur inattendue: '+e.message,'error');}
@@ -3372,7 +3454,10 @@ function renderMsgs(){
     const time=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     // ✅ Confirmation de lecture : ✓ = envoyé, ✓✓ = vu (partenaire a ouvert le chat)
     const readStatus=isMe?(A._partnerSeenAt&&new Date(A._partnerSeenAt)>new Date(msg.created_at)?'<span style="color:rgba(255,255,255,.9);font-size:10px" title="Lu">✓✓</span>':'<span style="color:rgba(255,255,255,.5);font-size:10px" title="Envoyé">✓</span>'):'';
-    const msgContent=msg.media_type?_renderMediaBubble(msg,isMe,col):('<div class="msg-bb" style="'+(isMe?'background:'+col+';box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)':'')+'">'+esc(msg.txt||'')+'</div>');
+    const _bbs='background:'+col+';box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)';
+    const msgContent=msg.media_type?_renderMediaBubble(msg,isMe,col)
+      :msg._pfs_expired?('<div class="msg-bb" style="'+(isMe?_bbs:'')+'"><span style="color:var(--muted);font-style:italic;font-size:12px">🔒 Session E2E expirée</span></div>')
+      :('<div class="msg-bb" style="'+(isMe?_bbs:'')+'">'+esc(msg.txt||'')+'</div>');
     div.innerHTML='<div class="msg-av" style="background:'+col+'22;color:'+col+'">'+(sender?.username||'?')[0].toUpperCase()+'</div>'
       +'<div>'+(!isMe?'<div class="msg-sn">'+esc(sender?.username||'')+'</div>':'')
       +msgContent
@@ -3406,7 +3491,7 @@ async function sendMsg(){
 
   let enc;
   try{
-    enc=await E2E.enc(text,A.sharedKey);
+    enc=await E2E.enc(text,_activeKey());
   }catch(e){
     toast('Échec du chiffrement — message non envoyé.','error');
     return;
@@ -3430,7 +3515,7 @@ async function sendMsg(){
     sender_id:A.user.id,
     ciphertext:enc.ct,
     iv:enc.iv,
-    version:1
+    version:_activeVer()
   };
   if(_eph)payload.expires_at=new Date(Date.now()+_ephDur).toISOString();
 
@@ -3447,21 +3532,40 @@ function chResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollH
 
 /* ═══ CHAT MEDIA ═══ */
 
-const _mediaCache=new Map();
+const _MAX_MEDIA_CACHE=50;
+const _mediaCache=new Map(); // LRU — voir _addToMediaCache
 const _audioPlayers=new Map();
 const _msgMeta=new Map(); // msgId → {url, iv, name, type}
+
+// LRU cache avec révocation automatique des blob URLs (prévient fuite mémoire)
+function _addToMediaCache(key,url){
+  if(_mediaCache.size>=_MAX_MEDIA_CACHE){
+    const oldKey=_mediaCache.keys().next().value;
+    URL.revokeObjectURL(_mediaCache.get(oldKey));
+    _mediaCache.delete(oldKey);
+  }
+  _mediaCache.set(key,url);
+}
 
 // Chiffrement fichier ArrayBuffer → {iv, encrypted}
 async function _encFile(buffer){
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:128},A.sharedKey,buffer);
+  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:128},_activeKey(),buffer);
   return{iv:b64e(iv),encrypted:new Uint8Array(enc)};
 }
 
-// Déchiffrement fichier
-async function _decFile(encBuffer,ivB64){
+// Déchiffrement fichier (essaie PFS puis identity key si v=3)
+async function _decFile(encBuffer,ivB64,version){
   const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));
-  return crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},A.sharedKey,encBuffer);
+  const key=version===3?(A.pfsKey||A.sharedKey):A.sharedKey;
+  try{
+    return await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},key,encBuffer);
+  }catch{
+    if(version===3&&A.sharedKey&&A.pfsKey){
+      return crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},A.sharedKey,encBuffer);
+    }
+    throw new Error('Déchiffrement fichier échoué');
+  }
 }
 
 // Upload vers R2 via presigned URL (Supabase Edge Function)
@@ -3476,16 +3580,16 @@ async function _uploadMedia(file){
 }
 
 // Download + déchiffrement depuis R2
-async function _downloadMedia(mediaUrl,iv){
+async function _downloadMedia(mediaUrl,iv,version){
   if(_mediaCache.has(mediaUrl))return _mediaCache.get(mediaUrl);
   const{data,error}=await sb.functions.invoke('get-download-url',{body:{key:mediaUrl}});
   if(error||!data?.downloadUrl)return null;
   const res=await fetch(data.downloadUrl);
   if(!res.ok)return null;
   const encBuffer=await res.arrayBuffer();
-  const plain=await _decFile(encBuffer,iv);
+  const plain=await _decFile(encBuffer,iv,version||2);
   const url=URL.createObjectURL(new Blob([plain]));
-  _mediaCache.set(mediaUrl,url);
+  _addToMediaCache(mediaUrl,url);
   return url;
 }
 
@@ -3516,14 +3620,25 @@ async function sendMediaMsg(file,mediaType,mediaDuration){
   let upload=file;
   if(mediaType==='image')upload=await _compressImage(file);
   const tmpId='tmp-'+Date.now();
-  const optimistic={id:tmpId,couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv:'',version:2,
+  const ver=_activeVer();
+  const optimistic={id:tmpId,couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv:'',version:ver,
     media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null,media_url:null,
     created_at:new Date().toISOString(),_uploading:true,txt:null};
   A.msgs.push(optimistic);renderMsgs();
   try{
-    const{key,iv}=await _uploadMedia(upload);
-    const payload={couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv,version:2,
-      media_url:key,media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null};
+    const{key,iv:fileIv}=await _uploadMedia(upload);
+    let payload;
+    if(ver===3){
+      // v=3 : métadonnées chiffrées dans ciphertext — rien en clair en DB
+      const metaJson=JSON.stringify({_m:1,t:mediaType,n:file.name,s:upload.size,d:mediaDuration||0,fiv:fileIv});
+      const enc=await E2E.enc(metaJson,_activeKey());
+      if(!enc){throw new Error('Chiffrement métadonnées échoué');}
+      payload={couple_id:A.couple.id,sender_id:A.user.id,ciphertext:enc.ct,iv:enc.iv,version:3,
+        media_url:key,media_type:null,media_name:null,media_size:null,media_duration:null};
+    }else{
+      payload={couple_id:A.couple.id,sender_id:A.user.id,ciphertext:'[MEDIA_ENCRYPTED]',iv:fileIv,version:2,
+        media_url:key,media_type:mediaType,media_name:file.name,media_size:upload.size,media_duration:mediaDuration||null};
+    }
     if(_eph)payload.expires_at=new Date(Date.now()+_ephDur).toISOString();
     const{error}=await sb.from('messages').insert(payload);
     if(error)throw new Error(error.message);
@@ -3536,10 +3651,10 @@ async function sendMediaMsg(file,mediaType,mediaDuration){
 
 // Rendu bulle media
 function _renderMediaBubble(msg,isMe,col){
-  const id=msg.id,url=msg.media_url||'',iv=msg.iv||'',up=msg._uploading;
+  const id=msg.id,url=msg.media_url||'',iv=msg._fileIv||msg.iv||'',up=msg._uploading;
   const cs=isMe?'box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)':'';
   // Stocker metadata pour éviter escaping de noms de fichiers dans onclick
-  if(url)_msgMeta.set(id,{url,iv,name:msg.media_name||'fichier',type:msg.media_type});
+  if(url)_msgMeta.set(id,{url,iv,name:msg.media_name||'fichier',type:msg.media_type,version:msg.version||2});
   if(msg.media_type==='audio'){
     const secs=msg.media_duration||0;
     const dur=Math.floor(secs/60)+':'+(secs%60+'').padStart(2,'0');
@@ -3559,7 +3674,7 @@ function _renderMediaBubble(msg,isMe,col){
     const ph=t==='video'?'🎬':'🖼';
     const inner=cached?(t==='image'?'<img src="'+cached+'" alt="" loading="lazy">':'<video src="'+cached+'" playsinline muted>')
       :'<div class="msg-img-ph" id="mimg-'+id+'">'+(up?'📤':ph)+'</div>';
-    if(!cached&&url&&!up)setTimeout(()=>_loadImgThumb(id,url,iv,t),50);
+    if(!cached&&url&&!up)setTimeout(()=>_loadImgThumb(id,url,iv,t,msg.version||2),50);
     return '<div class="msg-img-wrap'+(up?' msg-sending':'')+'"'+(up?'':' onclick="_viewMediaById(\''+id+'\')"')+' style="'+(isMe?'background:'+col:'background:var(--surface)')+'">'+inner+'</div>';
   }
   // fichier
@@ -3573,10 +3688,10 @@ function _renderMediaBubble(msg,isMe,col){
 }
 
 // Charger thumbnail image/vidéo après rendu
-async function _loadImgThumb(msgId,mediaUrl,iv,type){
+async function _loadImgThumb(msgId,mediaUrl,iv,type,version){
   const ph=document.getElementById('mimg-'+msgId);if(!ph)return;
   ph.textContent='⏳';
-  const objUrl=await _downloadMedia(mediaUrl,iv);
+  const objUrl=await _downloadMedia(mediaUrl,iv,version||2);
   if(!objUrl){ph.textContent=type==='video'?'🎬':'🖼';return;}
   const wrap=ph.parentElement;if(!wrap)return;
   if(type==='image'){const img=document.createElement('img');img.src=objUrl;img.alt='';img.loading='lazy';wrap.replaceChild(img,ph);}
@@ -3595,7 +3710,7 @@ async function _playAudioById(msgId){
     return;
   }
   if(btn)btn.textContent='⏳';
-  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  const objUrl=await _downloadMedia(meta.url,meta.iv,meta.version||2);
   if(!objUrl){toast('Erreur chargement audio.','error');if(btn)btn.textContent='▶';return;}
   const audio=new Audio(objUrl);
   _audioPlayers.set(msgId,audio);
@@ -3639,7 +3754,7 @@ function _cycleVideoSpeed(v,btn){
 // Plein écran image/vidéo
 async function _viewMediaById(msgId){
   const meta=_msgMeta.get(msgId);if(!meta)return;
-  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  const objUrl=await _downloadMedia(meta.url,meta.iv,meta.version||2);
   if(!objUrl){toast('Erreur chargement.','error');return;}
   const ov=document.createElement('div');ov.className='ch-fullscreen-ov';
   ov.onclick=(e)=>{if(e.target===ov)document.body.removeChild(ov);};
@@ -3658,7 +3773,7 @@ async function _viewMediaById(msgId){
 // Télécharger fichier
 async function _dlFileById(msgId){
   const meta=_msgMeta.get(msgId);if(!meta)return;
-  const objUrl=await _downloadMedia(meta.url,meta.iv);
+  const objUrl=await _downloadMedia(meta.url,meta.iv,meta.version||2);
   if(!objUrl){toast('Erreur téléchargement.','error');return;}
   const a=document.createElement('a');a.href=objUrl;a.download=meta.name;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
@@ -4318,9 +4433,25 @@ function renderSettings(){
     +'</div>'
 
     // ── NOTIFICATIONS ──
-    +'<div class="st-sc"><div class="st-st">🔔 Notifications</div>'
-      +'<label class="st-tg-rw"><span class="st-ri">📳</span><div class="st-rf"><div class="st-rt">Vibrations</div><div class="st-rs">Retour haptique</div></div><input type="checkbox" '+(hapt?'checked':'')+' onchange="setPref(\'haptics\',this.checked)"></label>'
-    +'</div>'
+    +(()=>{
+      const np=A.notifPrefs||{};
+      const cats=[
+        {k:'chat',l:'Messages chat',i:'💬'},
+        {k:'tasks',l:'Tâches',i:'✅'},
+        {k:'budget',l:'Budget',i:'💰'},
+        {k:'shopping',l:'Courses',i:'🛒'},
+        {k:'meals',l:'Repas',i:'🍽️'},
+        {k:'calendar',l:'Calendrier',i:'📅'},
+      ];
+      const rows=cats.map(c=>{
+        const checked=np['notif_'+c.k]!==false;
+        return '<label class="st-tg-rw"><span class="st-ri">'+c.i+'</span><div class="st-rf"><div class="st-rt">'+c.l+'</div></div><input type="checkbox" '+(checked?'checked':'')+' onchange="saveNotifPref(\''+c.k+'\',this.checked)"></label>';
+      }).join('');
+      return '<div class="st-sc"><div class="st-st">🔔 Notifications push</div>'
+        +'<label class="st-tg-rw"><span class="st-ri">📳</span><div class="st-rf"><div class="st-rt">Vibrations</div><div class="st-rs">Retour haptique</div></div><input type="checkbox" '+(hapt?'checked':'')+' onchange="setPref(\'haptics\',this.checked)"></label>'
+        +'<div style="border-top:1px solid var(--border2);padding:6px 0 2px"><div style="font-size:11px;color:var(--muted);padding:6px 16px 4px">Recevoir les notifications par catégorie</div>'
+        +rows+'</div></div>';
+    })()
 
     // ── SÉCURITÉ ──
     +'<div class="st-sc"><div class="st-st">🔒 Sécurité</div>'
@@ -4373,6 +4504,23 @@ function renderSettings(){
   applyPrefs();
   // Render equity inline
   renderEquity('st-equity-section');
+}
+
+async function saveNotifPref(category,enabled){
+  if(!A.user||!A.couple)return;
+  const col='notif_'+category;
+  const update={[col]:enabled,updated_at:new Date().toISOString()};
+  if(!A.notifPrefs){
+    const{data}=await sb.from('notification_prefs').upsert(
+      {user_id:A.user.id,couple_id:A.couple.id,...update},
+      {onConflict:'user_id'}
+    ).select().single();
+    A.notifPrefs=data||{...update,user_id:A.user.id,couple_id:A.couple.id};
+  }else{
+    await sb.from('notification_prefs').update(update).eq('user_id',A.user.id);
+    A.notifPrefs={...A.notifPrefs,...update};
+  }
+  toast(enabled?'Activé ✓':'Désactivé','success',1200);
 }
 
 /* ═══ PRÉFÉRENCES UTILISATEUR ═══ */
@@ -4525,19 +4673,22 @@ async function doSignOut(){
     user:null,me:null,couple:null,partner:null,
     sharedKey:null,
     _pk:null,              // clé privée E2E effacée
-    _sessionKey:null,     // clé de session éphémère effacée
+    _sessionKey:null,
     _myPubKey:null,
     _partnerPubKeyCached:null,
     _partnerFingerprint:null,
     _keyChangeAlert:false,
     _keyPendingConfirmation:null,
     _rtChannel:null,
+    pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,_pfsChannel:null,
+    notifPrefs:null,
     tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
     wkOff:0,selAc:null,filt:'all',prio:'low',eTid:null,
     eph:false,unread:0,avail:{},
     msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true
   };
   LL.log('info','auth','logout');
+  LL.auditLog?.('logout');
   showSc('s-auth');authTab('login');toast('Déconnecté·e','info');
 }
 async function delAccount(){
@@ -4926,6 +5077,7 @@ const BackupManager={
       const blob=new Blob([file],{type:'application/json'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');a.href=url;a.download='loadless-backup-'+new Date().toISOString().slice(0,10)+'.llbk';a.click();URL.revokeObjectURL(url);
+      LL.auditLog?.('export_backup');
       toast('Sauvegarde téléchargée !','success');
     }catch(e){toast('Erreur export : '+e.message,'error');}
   },
