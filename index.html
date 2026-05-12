@@ -4359,7 +4359,7 @@ function renderSettings(){
   }
 
   const isCreator=couple?.partner1_id===A.user?.id;
-  const rotateBtn=isCreator&&!A.partner
+  const rotateBtn=isCreator
     ?'<button onclick="rotateInviteCode()" style="margin-top:10px;background:none;border:1.5px solid var(--border);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:Outfit,sans-serif">🔄 Régénérer le code</button>'
     :'';
 
@@ -4485,11 +4485,12 @@ function renderSettings(){
 
     // ── COMPTE ──
     +'<div class="st-sc"><div class="st-st">👤 Compte</div>'
-      +(couple&&!A.partner
+      +(couple&&A.partner
+        ?'<div class="st-rw" style="cursor:default"><span class="st-ri">🔗</span><div class="st-rf"><div class="st-rt">Partenaire lié</div><div class="st-rs" style="color:var(--green);font-weight:600">✓ '+esc(A.partner.username)+'</div></div></div>'
+        :'')
+      +(couple&&isCreator
         ?'<div class="st-rw" onclick="rotateInviteCode()" role="button" tabindex="0"><span class="st-ri">🔄</span><div class="st-rf"><div class="st-rt">Régénérer mon code d\'invitation</div><div class="st-rs">L\'ancien code deviendra invalide</div></div><span class="st-ra">›</span></div>'
-        :couple&&A.partner
-          ?'<div class="st-rw" style="cursor:default"><span class="st-ri">🔗</span><div class="st-rf"><div class="st-rt">Partenaire lié</div><div class="st-rs" style="color:var(--green);font-weight:600">✓ '+esc(A.partner.username)+'</div></div></div>'
-          :'')
+        :'')
       +'<div class="st-rw" onclick="doSignOut()" role="button" tabindex="0"><span class="st-ri">🚪</span><div class="st-rf"><div class="st-rt">Se déconnecter</div><div class="st-rs">'+esc(A.user?.email||'')+'</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="delAccount()" role="button" tabindex="0" style="color:var(--red)"><span class="st-ri">🗑️</span><div class="st-rf"><div class="st-rt">Supprimer mon compte</div><div class="st-rs">Action irréversible</div></div><span class="st-ra">›</span></div>'
     +'</div>'
@@ -4662,8 +4663,8 @@ async function saveProfile(){
 // ✅ Rotation du code d'invitation via RPC sécurisée
 async function rotateInviteCode(){
   if(!A.couple){toast('Aucun foyer trouvé.','error');return;}
-  if(A.partner){toast('Impossible de régénérer : un partenaire est déjà lié.','error');return;}
-  if(!confirm('Régénérer le code d\'invitation ?\n\nL\'ancien code deviendra invalide immédiatement.'))return;
+  const warnPartner=A.partner?'\n\n⚠️ Votre partenaire devra utiliser le nouveau code pour se reconnecter si nécessaire.':'';
+  if(!confirm('Régénérer le code d\'invitation ?'+warnPartner+'\n\nL\'ancien code deviendra invalide immédiatement.'))return;
   const{data,error}=await sb.rpc('rotate_invite_code',{p_couple_id:A.couple.id});
   if(error){toast('Erreur: '+error.message,'error');return;}
   if(data?.error){toast(data.message||'Erreur','error');return;}
