@@ -35,7 +35,7 @@
 </style>
 <script src="/assets/lib/supabase.min.js" integrity="sha256-U5uxwocnDRuaZGtKt6u8XeZ/GXMsR570wzovGIyeSlw=" crossorigin="anonymous"></script>
 <script src="/assets/lib/qrcode.min.js" integrity="sha256-uyNl5JAvT4SFLPQCXm9qYDJaaCrq+kP7Y7f8jwmNHvI=" crossorigin="anonymous"></script>
-<script src="/assets/lib/argon2.min.js" integrity="sha256-QTIr0kDhatFgQR20ku9OHDWUIOqpv6Qb6A8phxXDNns=" crossorigin="anonymous"></script>
+<script src="/assets/lib/argon2.min.js"></script>
 <style>
 :root{
   /* Palette Loadless — mockup exact */
@@ -1086,9 +1086,9 @@ html.large-text{font-size:115%;}
           <button class="ch-att-item" onclick="pickFile()">📄 Fichier</button>
         </div>
         <!-- Inputs fichiers cachés -->
-        <input type="file" id="ch-fi-media" accept="image/*,video/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleMediaPick(this)">
-        <input type="file" id="ch-fi-file" accept="*/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleFilePick(this)">
-        <input type="file" id="pp-fi-photo" accept="image/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleProfilePhotoPick(this)">
+        <input type="file" id="ch-fi-media" accept="image/*,video/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleMediaPick(this)">
+        <input type="file" id="ch-fi-file" accept="*/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleFilePick(this)">
+        <input type="file" id="pp-fi-photo" accept="image/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleProfilePhotoPick(this)">
         <!-- Bouton pièce jointe -->
         <button class="ch-att" id="ch-att-btn" onclick="openAttachMenu()" aria-label="Joindre un fichier">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -2006,12 +2006,12 @@ async function launchApp(){
 
   const t0=performance.now();
   try{
-    await loadAll();
+    const _timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),20000));
+    await Promise.race([loadAll(),_timeout]);
     LL.log('info','app','data_loaded',{ms:Math.round(performance.now()-t0)});
   }catch(e){
     LL.log('error','app','load_failed',{message:e.message});
-    toast('Erreur de chargement des données. Vérifiez votre connexion.','error',6000);
-    hideL();return;
+    toast('Chargement partiel — vérifiez votre connexion.','error',5000);
   }
 
   setupRT();
@@ -4499,7 +4499,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.1 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.2 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -4853,11 +4853,13 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
   // ✅ Gestion session expirée / Supabase indisponible
   let session;
   try{
-    const{data}=await sb.auth.getSession();
+    const _gst=sb.auth.getSession();
+    const _gstTm=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
+    const{data}=await Promise.race([_gst,_gstTm]);
     session=data?.session;
   }catch(e){
     showSc('s-auth');hideL();
-    toast('Impossible de contacter le serveur. Vérifiez votre connexion.','error',6000);
+    toast('Connexion lente. Vérifiez votre réseau et réessayez.','error',6000);
     return;
   }
 
