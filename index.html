@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Loadless">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=()">
@@ -809,6 +809,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .msg-file-size{font-size:10px;opacity:.6;}
 .msg-sending{opacity:.5;pointer-events:none;}
 .ch-fullscreen-ov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.msg-audio-spd{background:rgba(255,255,255,.15);border:none;border-radius:6px;padding:2px 5px;font-size:9px;font-weight:800;color:inherit;cursor:pointer;flex-shrink:0;font-family:'Inter','UI',sans-serif;}
+.msg.theirs .msg-audio-spd{background:var(--bg);color:var(--muted);}
+.ch-spd-btn{background:rgba(255,255,255,.15);backdrop-filter:blur(4px);border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;font-family:'Inter','UI',sans-serif;}
+.ch-preview-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.ch-preview-media{max-width:90vw;max-height:65vh;object-fit:contain;border-radius:12px;}
+.ch-preview-btns{display:flex;gap:12px;}
+.ch-preview-btn{padding:12px 28px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Inter','UI',sans-serif;}
+.ch-preview-btn.send{background:var(--p1d);color:#fff;}
+.ch-preview-btn.cancel{background:rgba(255,255,255,.15);color:#fff;}
 
 /* EQUITY — Toy-Style */
 .eq-wr{padding:14px;}
@@ -1078,6 +1087,7 @@ html.large-text{font-size:115%;}
         <!-- Inputs fichiers cachés -->
         <input type="file" id="ch-fi-media" accept="image/*,video/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleMediaPick(this)">
         <input type="file" id="ch-fi-file" accept="*/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleFilePick(this)">
+        <input type="file" id="pp-fi-photo" accept="image/*" style="position:absolute;top:-200px;left:-200px;width:1px;height:1px" onchange="handleProfilePhotoPick(this)">
         <!-- Bouton pièce jointe -->
         <button class="ch-att" id="ch-att-btn" onclick="openAttachMenu()" aria-label="Joindre un fichier">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -1773,26 +1783,32 @@ async function setupKeys(){
   } else {
     // Clé existante — vérifier si rotation nécessaire (7 jours)
     A._myPubKey=p.public_key;
-    const needsRotation=await E2E.shouldRotate(uid);
-    if(needsRotation){
-      // ✅ Rotation : générer une nouvelle paire SEULEMENT si 7 jours écoulés
-      LL.log('info','crypto','rotating_identity_key');
-      const kp=await E2E.gen();
-      await E2E.saveK(uid,kp.priv);
-      const{error}=await sb.from('profiles').update({public_key:kp.pub}).eq('id',uid);
-      if(!error){
-        privB=kp.priv;
-        A._myPubKey=kp.pub;
-        await E2E.markRotated(uid);
-        // Effacer le fingerprint connu du partenaire pour re-vérification
-        if(A.partner?.id){
-          localStorage.removeItem('ll-fp-'+uid+'-'+A.partner.id);
-        }
-        toast('🔑 Clés de sécurité renouvelées. Revérifiez avec votre partenaire.','info',5000);
-        LL.log('info','crypto','keypair_rotated');
-      }
+    const lastRotation=localStorage.getItem('ll-key-rotation-'+uid);
+    if(!lastRotation){
+      // localStorage vidé (reinstall/clear data) mais clé IndexedDB existe — NE PAS régénérer
+      // Juste re-marquer la date pour éviter une fausse rotation
+      await E2E.markRotated(uid);
+      LL.log('info','crypto','rotation_timestamp_restored');
     } else {
-      LL.log('info','crypto','existing_keypair_loaded');
+      const needsRotation=await E2E.shouldRotate(uid);
+      if(needsRotation){
+        LL.log('info','crypto','rotating_identity_key');
+        const kp=await E2E.gen();
+        await E2E.saveK(uid,kp.priv);
+        const{error}=await sb.from('profiles').update({public_key:kp.pub}).eq('id',uid);
+        if(!error){
+          privB=kp.priv;
+          A._myPubKey=kp.pub;
+          await E2E.markRotated(uid);
+          if(A.partner?.id){
+            localStorage.removeItem('ll-fp-'+uid+'-'+A.partner.id);
+          }
+          toast('🔑 Clés de sécurité renouvelées. Revérifiez avec votre partenaire.','info',5000);
+          LL.log('info','crypto','keypair_rotated');
+        }
+      } else {
+        LL.log('info','crypto','existing_keypair_loaded');
+      }
     }
   }
   A._pk=privB;
@@ -3531,7 +3547,10 @@ function _renderMediaBubble(msg,isMe,col){
       '<button class="msg-audio-btn" onclick="_playAudioById(\''+id+'\')" id="abtn-'+id+'">▶</button>'+
       '<div class="msg-audio-track">'+
         '<div class="msg-audio-bar" onclick="_seekAudio(event,\''+id+'\')"><div class="msg-audio-prog" id="apr-'+id+'"></div></div>'+
-        '<span class="msg-audio-dur" id="adur-'+id+'">'+dur+'</span>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between">'+
+          '<span class="msg-audio-dur" id="adur-'+id+'">'+dur+'</span>'+
+          '<button class="msg-audio-spd" id="aspd-'+id+'" onclick="_cycleSpeed(\''+id+'\')">1x</button>'+
+        '</div>'+
       '</div></div>';
   }
   if(msg.media_type==='image'||msg.media_type==='video'){
@@ -3597,6 +3616,25 @@ function _seekAudio(e,msgId){
   const bar=e.currentTarget;const r=bar.getBoundingClientRect();
   a.currentTime=((e.clientX-r.left)/r.width)*a.duration;
 }
+const _SPD=[0.5,1,1.15,1.3,1.5,1.75,2];
+const _msgSpd=new Map();
+function _cycleSpeed(msgId){
+  const cur=_msgSpd.get(msgId)||1;
+  const idx=_SPD.indexOf(cur);
+  const next=_SPD[(idx+1)%_SPD.length];
+  _msgSpd.set(msgId,next);
+  const btn=document.getElementById('aspd-'+msgId);
+  if(btn)btn.textContent=next+'x';
+  const a=_audioPlayers.get(msgId);
+  if(a)a.playbackRate=next;
+}
+function _cycleVideoSpeed(v,btn){
+  const cur=parseFloat(btn.textContent)||1;
+  const idx=_SPD.indexOf(cur);
+  const next=_SPD[(idx+1)%_SPD.length];
+  btn.textContent=next+'x';
+  v.playbackRate=next;
+}
 
 // Plein écran image/vidéo
 async function _viewMediaById(msgId){
@@ -3604,9 +3642,16 @@ async function _viewMediaById(msgId){
   const objUrl=await _downloadMedia(meta.url,meta.iv);
   if(!objUrl){toast('Erreur chargement.','error');return;}
   const ov=document.createElement('div');ov.className='ch-fullscreen-ov';
-  ov.onclick=()=>document.body.removeChild(ov);
-  if(meta.type==='image'){const img=document.createElement('img');img.src=objUrl;img.style.cssText='max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px;';ov.appendChild(img);}
-  else{const v=document.createElement('video');v.src=objUrl;v.controls=true;v.autoplay=true;v.style.cssText='max-width:95vw;max-height:90vh;border-radius:8px;';ov.appendChild(v);}
+  ov.onclick=(e)=>{if(e.target===ov)document.body.removeChild(ov);};
+  if(meta.type==='image'){
+    const img=document.createElement('img');img.src=objUrl;img.style.cssText='max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px;cursor:default;';ov.appendChild(img);
+  } else {
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:10px;';
+    const v=document.createElement('video');v.src=objUrl;v.controls=true;v.autoplay=true;v.style.cssText='max-width:95vw;max-height:80vh;border-radius:8px;cursor:default;';
+    const spdBtn=document.createElement('button');spdBtn.className='ch-spd-btn';spdBtn.textContent='1x';
+    spdBtn.onclick=(e)=>{e.stopPropagation();_cycleVideoSpeed(v,spdBtn);};
+    wrap.appendChild(v);wrap.appendChild(spdBtn);ov.appendChild(wrap);
+  }
   document.body.appendChild(ov);
 }
 
@@ -3631,12 +3676,38 @@ async function handleMediaPick(input){
   const file=input.files?.[0];if(!file)return;input.value='';
   const isVid=file.type.startsWith('video/');
   if(isVid&&file.size>100*1024*1024){toast('Vidéo trop grande (max 100MB).','error');return;}
-  await sendMediaMsg(file,isVid?'video':'image');
+  _showMediaPreview(file,isVid?'video':'image');
 }
 async function handleFilePick(input){
   const file=input.files?.[0];if(!file)return;input.value='';
   if(file.size>100*1024*1024){toast('Fichier trop grand (max 100MB).','error');return;}
-  await sendMediaMsg(file,'file');
+  _showMediaPreview(file,'file');
+}
+function _showMediaPreview(file,mediaType){
+  const ov=document.createElement('div');ov.className='ch-preview-ov';
+  const objUrl=URL.createObjectURL(file);
+  let mediaEl;
+  if(mediaType==='image'){
+    mediaEl=document.createElement('img');mediaEl.src=objUrl;mediaEl.className='ch-preview-media';
+  } else if(mediaType==='video'){
+    mediaEl=document.createElement('video');mediaEl.src=objUrl;mediaEl.className='ch-preview-media';mediaEl.controls=true;
+  } else {
+    mediaEl=document.createElement('div');
+    const sz=file.size>1024*1024?(file.size/1024/1024).toFixed(1)+'MB':Math.round(file.size/1024)+'KB';
+    mediaEl.style.cssText='color:#fff;text-align:center;padding:20px';
+    mediaEl.innerHTML='<div style="font-size:48px">📄</div><div style="font-size:16px;font-weight:700;margin-top:10px">'+esc(file.name)+'</div><div style="font-size:13px;opacity:.7;margin-top:4px">'+sz+'</div>';
+  }
+  const btns=document.createElement('div');btns.className='ch-preview-btns';
+  const cancelBtn=document.createElement('button');cancelBtn.className='ch-preview-btn cancel';cancelBtn.textContent='Annuler';
+  const sendBtn=document.createElement('button');sendBtn.className='ch-preview-btn send';sendBtn.textContent='Envoyer';
+  cancelBtn.onclick=()=>{URL.revokeObjectURL(objUrl);document.body.removeChild(ov);};
+  sendBtn.onclick=async()=>{
+    URL.revokeObjectURL(objUrl);document.body.removeChild(ov);
+    await sendMediaMsg(file,mediaType);
+  };
+  btns.appendChild(cancelBtn);btns.appendChild(sendBtn);
+  ov.appendChild(mediaEl);ov.appendChild(btns);
+  document.body.appendChild(ov);
 }
 
 // Enregistrement vocal
@@ -4360,22 +4431,20 @@ function openProfileEdit(){
 }
 
 function pickProfilePhoto(){
-  const inp=document.createElement('input');
-  inp.type='file';inp.accept='image/*';
-  inp.style.cssText='position:fixed;opacity:0;top:-200px;left:-200px;width:1px;height:1px';
-  document.body.appendChild(inp);
-  inp.onchange=async(e)=>{
-    document.body.removeChild(inp);
-    const file=e.target.files[0];if(!file)return;
-    if(file.size>20*1024*1024){toast('Image trop grande (max 20 Mo)','error');return;}
-    try{
-      const b64=await _resizeImg(file,256);
-      const{error}=await sb.from('profiles').update({avatar_url:b64}).eq('id',A.user.id);
-      if(error)throw error;
-      A.me.avatar_url=b64;toast('Photo mise à jour !','success');renderSettings();
-    }catch(err){toast('Erreur: '+err.message,'error');}
-  };
+  const inp=document.getElementById('pp-fi-photo');
+  if(!inp)return;
+  inp.value='';
   inp.click();
+}
+async function handleProfilePhotoPick(inp){
+  const file=inp.files?.[0];if(!file)return;
+  if(file.size>20*1024*1024){toast('Image trop grande (max 20 Mo)','error');return;}
+  try{
+    const b64=await _resizeImg(file,256);
+    const{error}=await sb.from('profiles').update({avatar_url:b64}).eq('id',A.user.id);
+    if(error)throw error;
+    A.me.avatar_url=b64;toast('Photo mise à jour !','success');renderSettings();
+  }catch(err){toast('Erreur: '+err.message,'error');}
 }
 function _resizeImg(file,maxPx){
   return new Promise((resolve,reject)=>{
