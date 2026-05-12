@@ -2161,8 +2161,16 @@ async function _registerPushToken(){
     const perm=await PushNotifications.requestPermissions();
     if(perm.receive!=='granted')return;
     await PushNotifications.register();
-    PushNotifications.addListener('registration',async(token)=>{
-      await sb.rpc('upsert_device_token',{p_token:token.value,p_platform:Capacitor.getPlatform()||'android'});
+    PushNotifications.addListener('registration',async({value:fcmToken})=>{
+      try{
+        const r=await fetch('https://onesignal.com/api/v1/players',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({app_id:'0da139d7-cee4-4b49-a4cb-37a4d3fae0dc',device_type:1,identifier:fcmToken})
+        });
+        const{id:playerId}=await r.json();
+        if(playerId) await sb.rpc('upsert_device_token',{p_token:playerId,p_platform:Capacitor.getPlatform()||'android'});
+      }catch(e2){LL.log('warn','push','onesignal_register_failed',{msg:e2.message});}
     });
   }catch(e){
     LL.log('warn','push','register_failed',{msg:e.message});
