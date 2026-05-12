@@ -57,10 +57,10 @@ Décisions clés :
 
 ## PHASE 6 — VÉRIFICATIONS & AUDITS
 
-- [ ] 14. Tests non-régression toutes features
-- [ ] 15. AUDIT_FONCTIONNEL.md
-- [ ] 16. AUDIT_SECURITE_APP.md (note /10)
-- [ ] 17. AUDIT_SECURITE_CHAT.md (note /10)
+- [x] 14. Tests non-régression toutes features
+- [x] 15. AUDIT_FONCTIONNEL.md
+- [x] 16. AUDIT_SECURITE_APP.md (note /10)
+- [x] 17. AUDIT_SECURITE_CHAT.md (note /10)
 - [ ] Commit + Push final
 
 ---
