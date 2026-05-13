@@ -965,7 +965,7 @@ html.large-text{font-size:115%;}
 </style>
 </head>
 <body role="application" aria-label="Loadless — Gestion du foyer"><div id="toast-wrap" aria-live="polite" aria-atomic="false"></div>
-<div id="loader"><div class="ll-logo" style="display:flex;flex-direction:column;align-items:center;gap:8px"><img src="/assets/icon.png" alt="Loadless" style="width:72px;height:72px;object-fit:cover;border-radius:20px;margin-bottom:4px"><span style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:700;color:var(--ink)">Load<span style="color:var(--p1d)">less</span></span></div><div class="spin"></div></div>
+<div id="loader"><div class="ll-logo" style="display:flex;flex-direction:column;align-items:center;gap:8px"><img src="/assets/icon.png" alt="Loadless" style="width:72px;height:72px;object-fit:cover;border-radius:20px;margin-bottom:4px"><span style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:700;color:var(--ink)">Load<span style="color:var(--p1d)">less</span></span></div><div class="spin"></div><div id="loader-step" style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center;min-height:16px"></div></div>
 
 <!-- AUTH -->
 <div id="s-auth" class="screen">
@@ -1758,6 +1758,7 @@ function withTO(p,ms=7000){return Promise.race([p,new Promise((_,r)=>setTimeout(
 
 async function onAuth(user){
   A.user=user;
+  loadStep('Profil…');
   // ✅ Détection nouvelle session (appareil différent)
   const sessionKey='ll-last-ua-'+user.id;
   const lastUA=localStorage.getItem(sessionKey);
@@ -1796,6 +1797,7 @@ async function onAuth(user){
   }
 
   A.me=me;
+  loadStep('Clés E2E…');
   try{await withTO(setupKeys(),6000);}catch(e){
     LL.log('error','crypto','setup_keys_failed',{msg:e?.message||String(e)});
     // IndexedDB hang ou timeout → recharge automatiquement (transitoire sur Android cold start)
@@ -1824,7 +1826,7 @@ async function onAuth(user){
     showSc('s-auth');hideL();return;
   }
 
-  if(couple){A.couple=couple;await loadPartner();await buildKey();launchApp();}
+  if(couple){A.couple=couple;loadStep('Partenaire…');await loadPartner();loadStep('Chiffrement…');await buildKey();launchApp();}
   else{showSc('s-couple');hideL();}
 }
 
@@ -2069,6 +2071,7 @@ async function launchApp(){
   try{A.avail=JSON.parse(localStorage.getItem('ll-av')||'{}');}catch{}
   showSc('s-app');updatePill();
 
+  loadStep('Données…');
   const t0=performance.now();
   try{
     const _timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),20000));
@@ -4847,8 +4850,11 @@ function showSc(id){document.querySelectorAll('.screen').forEach(s=>s.classList.
 function hideL(){const l=document.getElementById('loader');if(l)l.style.display='none';}
 async function copyCode(code){try{await navigator.clipboard.writeText(code);toast('Code copié !','success');}catch{toast(code,'info',5000);}}
 
+function loadStep(s){const el=document.getElementById('loader-step');if(el)el.textContent=s;}
+
 /* ═══ BOOT ═══ */
 (async function(){
+  loadStep('Initialisation…');
   // ✅ Chargement config externe (self-hosting : /config.json surcharge SURL/SKEY)
   try{
     const cfg=await fetch('/config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null);
@@ -4923,6 +4929,7 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
   });
 
   // ✅ Gestion session expirée / Supabase indisponible
+  loadStep('Connexion…');
   let session;
   try{
     const _gst=sb.auth.getSession();
