@@ -1826,7 +1826,19 @@ async function onAuth(user){
     showSc('s-auth');hideL();return;
   }
 
-  if(couple){A.couple=couple;loadStep('Partenaire…');await loadPartner();loadStep('Chiffrement…');await buildKey();launchApp();}
+  if(couple){
+    A.couple=couple;
+    loadStep('Partenaire…');await loadPartner();
+    loadStep('Chiffrement…');
+    await withTO(buildKey(),5000).catch(e=>{
+      LL.log('warn','crypto','build_key_timeout',{msg:e?.message});
+      // crypto.subtle hang sur Android — retry silencieux après 2s
+      setTimeout(()=>buildKey().then(()=>{
+        if(document.getElementById('p-chat')?.classList.contains('active'))renderMsgs();
+      }).catch(()=>{}),2000);
+    });
+    launchApp();
+  }
   else{showSc('s-couple');hideL();}
 }
 
