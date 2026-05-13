@@ -1350,6 +1350,7 @@ html.large-text{font-size:115%;}
 <script>
 let SURL='https://lalpmkyxzapiheadvckp.supabase.co';
 let SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHBta3l4emFwaWhlYWR2Y2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MzY5MTAsImV4cCI6MjA5MzQxMjkxMH0.18_Frxi23QLbtL1qQgV1MJ7MoU7751rJeCgnIkD35bI';
+let OSID='0da139d7-cee4-4b49-a4cb-37a4d3fae0dc';
 let sb;
 
 // ══════════════════════════════════════════════════════════
@@ -1663,7 +1664,9 @@ function toast(msg,type='info',dur=3000){
   const ic=document.createElement('span');ic.textContent=(type==='success'?'✓':type==='error'?'✕':'ℹ');
   const tx=document.createElement('span');tx.textContent=msg;
   t.appendChild(ic);t.appendChild(tx);
-  w.appendChild(t);setTimeout(()=>t.style.opacity='0',dur-300);setTimeout(()=>t.remove(),dur);
+  w.appendChild(t);
+  if(dur>0){setTimeout(()=>t.style.opacity='0',Math.max(0,dur-300));setTimeout(()=>t.remove(),dur);}
+  else{t.style.cursor='pointer';t.title='Appuyez pour fermer';t.onclick=()=>t.remove();}
 }
 
 /* ═══ AUTH ═══ */
@@ -2168,10 +2171,7 @@ async function _decryptOneMsg(m){
 }
 
 async function decryptMsgs(){
-  A.msgs=[];
-  for(const m of A.raw||[]){
-    A.msgs.push(await _decryptOneMsg(m));
-  }
+  A.msgs=await Promise.all((A.raw||[]).map(m=>_decryptOneMsg(m)));
 }
 
 /* ═══ REALTIME ═══ */
@@ -2185,13 +2185,19 @@ async function _registerPushToken(){
     await PushNotifications.register();
     PushNotifications.addListener('registration',async({value:fcmToken})=>{
       try{
+        if(!OSID){LL.log('warn','push','onesignal_app_id_missing',{});return;}
         const r=await fetch('https://onesignal.com/api/v1/players',{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({app_id:'0da139d7-cee4-4b49-a4cb-37a4d3fae0dc',device_type:1,identifier:fcmToken})
+          body:JSON.stringify({app_id:OSID,device_type:1,identifier:fcmToken})
         });
-        const{id:playerId}=await r.json();
-        if(playerId) await sb.rpc('upsert_device_token',{p_token:playerId,p_platform:Capacitor.getPlatform()||'android'});
+        const json=await r.json();
+        if(!r.ok||json.errors){LL.log('warn','push','onesignal_api_error',{status:r.status,errors:json.errors});return;}
+        const playerId=json.id;
+        if(playerId){
+          await sb.rpc('upsert_device_token',{p_token:playerId,p_platform:Capacitor.getPlatform()||'android'});
+          LL.log('info','push','device_registered',{platform:Capacitor.getPlatform()});
+        }
       }catch(e2){LL.log('warn','push','onesignal_register_failed',{msg:e2.message});}
     });
   }catch(e){
@@ -4455,15 +4461,6 @@ function renderSettings(){
       +'<label class="st-tg-rw"><span class="st-ri">🌙</span><div class="st-rf"><div class="st-rt">Mode sombre</div><div class="st-rs">Thème foncé pour la nuit</div></div><input type="checkbox" '+(prefs.darkMode?'checked':'')+' onchange="setPref(\'darkMode\',this.checked)"></label>'
     +'</div>'
 
-    // ── LANGUE ──
-    +'<div class="st-sc"><div class="st-st">🌐 Langue</div>'
-      +'<div style="padding:10px 16px 14px">'
-        +'<select onchange="setPref(\'lang\',this.value);toast(\'Langue mise à jour — relancez l\\\'app pour appliquer.\',\'info\')" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:12px;padding:10px 14px;font-size:14px;font-family:\'Inter\',\'UI\',sans-serif;color:var(--ink);outline:none;cursor:pointer">'
-          +langs.map(l=>'<option value="'+l.v+'"'+(l.v===curLang?' selected':'')+'>'+l.l+'</option>').join('')
-        +'</select>'
-        +'<div style="font-size:11px;color:var(--muted);margin-top:8px">L\'interface sera traduite lors du prochain démarrage.</div>'
-      +'</div>'
-    +'</div>'
 
     // ── NOTIFICATIONS ──
     +(()=>{
@@ -4522,7 +4519,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.3 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.5 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -4807,6 +4804,7 @@ async function copyCode(code){try{await navigator.clipboard.writeText(code);toas
     const cfg=await fetch('/config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null);
     if(cfg?.SURL)SURL=cfg.SURL;
     if(cfg?.SKEY)SKEY=cfg.SKEY;
+    if(cfg?.OSID)OSID=cfg.OSID;
   }catch{}
   sb=supabase.createClient(SURL,SKEY);
 
