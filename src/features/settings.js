@@ -252,7 +252,7 @@ export function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.8.1 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v5.0.0 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
