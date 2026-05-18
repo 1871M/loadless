@@ -45,7 +45,7 @@ jobs:
 
       - name: Generate app icons from PNG
         run: |
-          SRC=assets/icon.png
+          SRC=public/assets/icon.png
           # Web PWA icons
           mkdir -p icons
           for SIZE in 72 96 128 144 152 192 384 512; do
@@ -53,7 +53,7 @@ jobs:
             echo "✅ icons/icon-${SIZE}.png"
           done
           # Keep logo.png in sync (used by loader)
-          convert "$SRC" -resize 192x192 "assets/logo.png"
+          convert "$SRC" -resize 192x192 "public/assets/logo.png"
           echo "✅ assets/logo.png"
 
       - name: Add Android platform
@@ -89,7 +89,7 @@ jobs:
 
       - name: Inject custom launcher icons into Android
         run: |
-          SRC=assets/icon.png
+          SRC=public/assets/icon.png
           RES=android/app/src/main/res
           # Standard mipmap sizes
           declare -A SIZES=(
