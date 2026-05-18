@@ -6,3 +6,11 @@ import { t, applyLang, TRANS } from './lib/i18n.js'
 import { A, CATS, SCATS, FREQ, MON, DAY, sanitizeColor, ALLOWED_COLORS } from './lib/state.js'
 import { E2E, b64e } from './lib/crypto.js'
 import { sb, OSID, auditLog } from './lib/supabase.js'
+import {
+  toast, showSc, hideL, loadStep, showPage, isP, openM, closeM, cMO,
+  launchApp, loadAll, loadMeals, loadMoreMsgs, loadMoreTx, decryptMsgs,
+  setupRT, openDrawer, closeDrawer, toggleDrawer,
+  esc, fd, fdFR, fmtE, cap, getMon, copyCode, updatePill, trapFocus,
+  quickAdd, initSkeletons
+} from './features/boot.js'
+import { authTab, doLogin, doRegister, doForgot, withTO, onAuth, _refreshProfileAndCouple } from './features/auth.js'
