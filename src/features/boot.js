@@ -20,7 +20,8 @@ function toast(msg,type='info',dur=3000){
 /* ═══ HELPERS ═══ */
 function updatePill(){
   const me=A.me;if(!me)return;
-  const pill=document.getElementById('upill'),av=document.getElementById('pav'),nm=document.getElementById('pnm');
+  const pill=document.getElementById('upill');if(!pill)return; // éléments supprimés du HTML lors du refactoring
+  const av=document.getElementById('pav'),nm=document.getElementById('pnm');
   // ✅ sanitizeColor empêche toute injection CSS via avatar_color
   const col=sanitizeColor(me.avatar_color);
   pill.style.background=col+'22';pill.style.borderColor=col+'55';
@@ -457,7 +458,7 @@ function bootApp(){
   (function(){
     const TIMEOUT=5*60*1000;
     let _timer;
-    function _lock(){sb.auth.signOut().finally(()=>{showSc('s-auth');toast('Session verrouillée (inactivité).','info');});}
+    function _lock(){sb.auth.signOut().finally(()=>{showSc('s-auth');toast('Session verrouillée (inactivité).','info');}); }
     function _reset(){clearTimeout(_timer);_timer=setTimeout(_lock,TIMEOUT);}
     ['mousemove','keydown','touchstart','click','scroll'].forEach(ev=>document.addEventListener(ev,_reset,{passive:true}));
     _reset();
