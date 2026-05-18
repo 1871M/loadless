@@ -1,1 +1,3 @@
-// Entry point Vite — populated in subsequent tasks
+import './styles/variables.css'
+import './styles/components.css'
+import './styles/pages.css'
