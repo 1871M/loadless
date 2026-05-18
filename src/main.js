@@ -22,3 +22,14 @@ import { renderBudget, _reloadTxs, changeBudgetMonth, openTx, saveTx, delTx, edi
 import { renderMeals, selectMealSlot, openMealM, saveMeal, editMeal, delMeal, wkNav, getMealIngr, addIngrToShop } from './features/meals.js'
 import { renderEquity, calcEquity, buildEqPerson, saveAvail, showEquityHistory } from './features/equity.js'
 import { renderCalendar, openCalModal, editCalEvent, saveCalEvent, delCalEvent, loadCalEvents, calSelectDate, calNav, selectCalColor } from './features/calendar.js'
+import {
+  renderMsgs, chSdPressStart, chSdPressEnd, sendMsg, chKey, chResize,
+  sendMediaMsg, openAttachMenu, closeAttachMenu, pickMedia, pickFile, handleMediaPick, handleFilePick,
+  micPressStart, micPressMove, micPressEnd, micPressCancel, stopAndSendRecording, cancelRecording,
+  updBadge, setEphDur, togEph, setEphSetting, applyEphCustom
+} from './features/chat.js'
+import {
+  renderSettings, doSignOut, delAccount, saveProfile, setPref, applyPrefs,
+  openProfileEdit, pickProfilePhoto, handleProfilePhotoPick, showHelpModal,
+  saveNotifPref, rotateInviteCode, showFingerprint, regenerateMyKey
+} from './features/settings.js'
