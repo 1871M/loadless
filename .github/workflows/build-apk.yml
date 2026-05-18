@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - 'index.html'
-      - 'assets/**'
-      - 'manifest.json'
-      - 'sw.js'
+      - 'src/**'
+      - 'public/**'
       - 'capacitor.config.json'
       - 'package.json'
+      - 'vite.config.js'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -114,14 +114,8 @@ jobs:
           convert "$SRC" -resize 285x285 -gravity center -background white -extent 432x432 "$RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
           echo "✅ Adaptive foreground injected (285px dans 432px safe zone)"
 
-      - name: Prepare webDir
-        run: |
-          mkdir -p www
-          cp index.html www/
-          cp manifest.json www/ 2>/dev/null || true
-          cp sw.js www/ 2>/dev/null || true
-          [ -d assets ] && cp -r assets www/ || true
-          [ -f privacy_policy.html ] && cp privacy_policy.html www/ || true
+      - name: Build web assets
+        run: npm run build
 
       - name: Sync Capacitor
         run: npx cap sync android
