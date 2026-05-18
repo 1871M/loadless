@@ -252,7 +252,7 @@ export function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v5.0.0 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v5.0.1 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -331,7 +331,7 @@ export function openProfileEdit(){
       +'<div class="fd"><label for="pe-un">Pseudo</label><input id="pe-un" type="text" value="'+esc(me.username||'')+'" maxlength="32" autocomplete="off"></div>'
       +'<div class="fd"><label>Couleur d\'accent</label>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px" id="pe-cp">'
-          +colors.map(c=>'<button class="pe-co" data-color="'+c+'" onclick="document.querySelectorAll(\'#pe-cp .pe-co\').forEach(b=>b.style.boxShadow=\'none\');this.style.boxShadow=\'0 0 0 2px white,0 0 0 4px \'+\''+c+'\'" style="width:34px;height:34px;border-radius:50%;background:'+c+';border:none;cursor:pointer;'+(c===me.avatar_color?'box-shadow:0 0 0 2px white,0 0 0 4px '+c:'')+'" aria-label="Couleur '+c+'"></button>').join('')
+          +colors.map(c=>'<button class="pe-co" data-color="'+c+'" onclick="document.querySelectorAll(\'#pe-cp .pe-co\').forEach(b=>b.style.boxShadow=\'none\');this.style.boxShadow=\'0 0 0 2px white,0 0 0 4px \'+\''+c+'\'' +' style="width:34px;height:34px;border-radius:50%;background:'+c+';border:none;cursor:pointer;'+(c===me.avatar_color?'box-shadow:0 0 0 2px white,0 0 0 4px '+c:'')+'" aria-label="Couleur '+c+'"></button>').join('')
         +'</div>'
       +'</div>'
     +'</div>'
@@ -479,4 +479,3 @@ export async function delAccount(){
     toast('Erreur. Contactez le support.','error');
   }
 }
-
