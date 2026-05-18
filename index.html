@@ -1758,6 +1758,30 @@ function withTO(p,ms=7000){return Promise.race([p,new Promise((_,r)=>setTimeout(
 
 async function onAuth(user){
   A.user=user;
+
+  // ── Cache localStorage (données non-sensibles : profil + foyer) ──────────
+  // Clés privées/sharedKey jamais dans localStorage — IDB uniquement
+  const _cacheMe=localStorage.getItem('ll-cache-me-'+user.id);
+  const _cacheCouple=localStorage.getItem('ll-cache-couple-'+user.id);
+  const cachedMe=_cacheMe?JSON.parse(_cacheMe):null;
+  const cachedCouple=_cacheCouple?JSON.parse(_cacheCouple):null;
+
+  if(cachedMe&&cachedCouple){
+    // ✅ Cache valide : lancer immédiatement, rafraîchir en arrière-plan
+    A.me=cachedMe;
+    A.couple=cachedCouple;
+    launchApp();
+    (async()=>{
+      try{await setupKeys();}catch(e){LL.log('error','crypto','setup_keys_failed',{msg:e?.message});}
+      try{await loadPartner();}catch(e){LL.log('warn','auth','load_partner_failed',{msg:e?.message});}
+      _initCryptoAsync();
+      // Rafraîchir profil + foyer en arrière-plan
+      _refreshProfileAndCouple(user).catch(()=>{});
+    })();
+    return;
+  }
+
+  // ── Première connexion sur cet appareil — chargement réseau obligatoire ──
   loadStep('Profil…');
   // ✅ Détection nouvelle session (appareil différent)
   const sessionKey='ll-last-ua-'+user.id;
@@ -1797,6 +1821,7 @@ async function onAuth(user){
   }
 
   A.me=me;
+  localStorage.setItem('ll-cache-me-'+user.id,JSON.stringify(me));
 
   let couple;
   try{
@@ -1810,8 +1835,8 @@ async function onAuth(user){
 
   if(couple){
     A.couple=couple;
-    launchApp();        // spinner disparaît ici — IDB/crypto hors thread spinner
-    // setupKeys (IDB + crypto.subtle) + loadPartner + buildKey : tout en arrière-plan
+    localStorage.setItem('ll-cache-couple-'+user.id,JSON.stringify(couple));
+    launchApp();
     (async()=>{
       try{await setupKeys();}catch(e){LL.log('error','crypto','setup_keys_failed',{msg:e?.message});}
       try{await loadPartner();}catch(e){LL.log('warn','auth','load_partner_failed',{msg:e?.message});}
@@ -1819,6 +1844,18 @@ async function onAuth(user){
     })();
   }
   else{showSc('s-couple');hideL();}
+}
+
+// Rafraîchit profil + foyer depuis le réseau et met le cache à jour
+async function _refreshProfileAndCouple(user){
+  try{
+    const{data:me}=await withTO(sb.from('profiles').select('*').eq('id',user.id).single()).catch(()=>({data:null}));
+    if(me){A.me=me;localStorage.setItem('ll-cache-me-'+user.id,JSON.stringify(me));}
+  }catch{}
+  try{
+    const{data:couple}=await withTO(sb.from('couples').select('*').or('partner1_id.eq.'+user.id+',partner2_id.eq.'+user.id).maybeSingle()).catch(()=>({data:null}));
+    if(couple){A.couple=couple;localStorage.setItem('ll-cache-couple-'+user.id,JSON.stringify(couple));}
+  }catch{}
 }
 
 /* ═══ E2E KEY MANAGEMENT ═══ */
@@ -4609,7 +4646,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.8 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.9 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -4994,6 +5031,8 @@ function loadStep(s){const el=document.getElementById('loader-step');if(el)el.te
       if(event==='SIGNED_IN'&&session&&!A.user){
         await onAuth(session.user);
       } else if(event==='SIGNED_OUT'){
+        // Invalider le cache au logout
+        if(A.user){localStorage.removeItem('ll-cache-me-'+A.user.id);localStorage.removeItem('ll-cache-couple-'+A.user.id);}
         A.user=null;showSc('s-auth');hideL();
       } else if(event==='PASSWORD_RECOVERY'){
         showSc('s-auth');authTab('login');hideL();
