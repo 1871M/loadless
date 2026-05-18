@@ -1,3 +1,8 @@
 import './styles/variables.css'
 import './styles/components.css'
 import './styles/pages.css'
+import { LL } from './lib/logger.js'
+import { t, applyLang, TRANS } from './lib/i18n.js'
+import { A, CATS, SCATS, FREQ, MON, DAY, sanitizeColor, ALLOWED_COLORS } from './lib/state.js'
+import { E2E, b64e } from './lib/crypto.js'
+import { sb, OSID, auditLog } from './lib/supabase.js'
