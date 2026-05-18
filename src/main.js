@@ -17,3 +17,8 @@ import { authTab, doLogin, doRegister, doForgot, withTO, onAuth, _refreshProfile
 import { setupKeys, buildKey, confirmPartnerKeyChange, loadPartner, cpSh, doCreate, doJoin, _initCryptoAsync, setupPFS, refreshPFSKey, computeFingerprint, _activeKey, _activeVer } from './features/couple.js'
 import { renderHome, getSugs } from './features/home.js'
 import { renderTasks, renderTL, buildTC, setF, _patchTask, claim, release, delT, openTaskModal, editTask, saveTask, onPsTg, setPrio, updPU, joinTask, leaveTask, claimTogether, inviteHelper, togT } from './features/tasks.js'
+import { renderShop, renderShopItems, openShopModal, saveShopItem, addShop, togShop, delShop, clearDone, editShop } from './features/shopping.js'
+import { renderBudget, _reloadTxs, changeBudgetMonth, openTx, saveTx, delTx, editAccount, saveAccount, deleteAccountConfirm, detectSubscriptions, renderDetectedSubs, toggleSubsList } from './features/budget.js'
+import { renderMeals, selectMealSlot, openMealM, saveMeal, editMeal, delMeal, wkNav, getMealIngr, addIngrToShop } from './features/meals.js'
+import { renderEquity, calcEquity, buildEqPerson, saveAvail, showEquityHistory } from './features/equity.js'
+import { renderCalendar, openCalModal, editCalEvent, saveCalEvent, delCalEvent, loadCalEvents, calSelectDate, calNav, selectCalColor } from './features/calendar.js'
