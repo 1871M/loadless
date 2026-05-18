@@ -1656,7 +1656,7 @@ function b64e(buf){return btoa(String.fromCharCode(...(buf instanceof Uint8Array
 let A={
   user:null,me:null,couple:null,partner:null,sharedKey:null,_pk:null,_sessionKey:null,
   // PFS session keys (en mémoire uniquement — jamais persistées)
-  pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,
+  pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,_cryptoInitPending:false,
   tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
   wkOff:0,selAc:null,filt:'todo',prio:'low',eTid:null,eph:false,unread:0,avail:{},
   msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true,
@@ -1829,15 +1829,8 @@ async function onAuth(user){
   if(couple){
     A.couple=couple;
     loadStep('Partenaire…');await loadPartner();
-    loadStep('Chiffrement…');
-    await withTO(buildKey(),5000).catch(e=>{
-      LL.log('warn','crypto','build_key_timeout',{msg:e?.message});
-      // crypto.subtle hang sur Android — retry silencieux après 2s
-      setTimeout(()=>buildKey().then(()=>{
-        if(document.getElementById('p-chat')?.classList.contains('active'))renderMsgs();
-      }).catch(()=>{}),2000);
-    });
-    launchApp();
+    launchApp();        // spinner disparaît ici — plus de blocage sur crypto.subtle
+    _initCryptoAsync(); // dérivation clé E2E en arrière-plan, hors thread spinner
   }
   else{showSc('s-couple');hideL();}
 }
@@ -1949,6 +1942,51 @@ async function buildKey(){
     A.sharedKey=null;
     toast('Erreur dérivation clé E2E — chat désactivé','error');
   }
+}
+
+/* ═══ ASYNC CRYPTO INIT (hors spinner) ═══ */
+async function _initCryptoAsync(){
+  // Warm-up WebCrypto : force l'init du hardware keystore Android avant les vraies ops
+  // Évite le blocage du thread V8 sur cold start (bug Android WebView + TEE)
+  try{
+    await Promise.race([
+      crypto.subtle.digest('SHA-256',new Uint8Array(1)),
+      new Promise((_,r)=>setTimeout(()=>r(new Error('warmup_timeout')),3000))
+    ]);
+  }catch(e){
+    LL.log('warn','crypto','warmup_failed',{msg:e?.message});
+  }
+
+  let attempt=0;
+  const MAX=3;
+  const DELAYS=[0,2000,5000];
+
+  const tryBuild=async()=>{
+    attempt++;
+    try{
+      await Promise.race([
+        buildKey(),
+        new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),8000))
+      ]);
+      if(A.sharedKey){
+        LL.log('info','crypto','build_key_success',{attempt});
+        if(document.getElementById('p-chat')?.classList.contains('active'))renderMsgs();
+        return;
+      }
+    }catch(e){
+      LL.log('warn','crypto','build_key_attempt_failed',{attempt,msg:e?.message});
+    }
+    if(attempt<MAX){
+      setTimeout(tryBuild,DELAYS[attempt]);
+    }else{
+      LL.log('error','crypto','build_key_all_failed',{});
+      toast('Chiffrement indisponible — chat désactivé. Relancez l\'app.','error',0);
+    }
+  };
+
+  A._cryptoInitPending=true;
+  await tryBuild();
+  A._cryptoInitPending=false;
 }
 
 /* ═══ PFS SESSION KEY MANAGEMENT ═══ */
@@ -3576,6 +3614,8 @@ async function sendMsg(){
   if(!A.sharedKey){
     if(!A.partner){
       toast('Invitez d\'abord votre partenaire pour activer le chat chiffré.','error',5000);
+    } else if(A._cryptoInitPending){
+      toast('Chiffrement en cours d\'initialisation, patientez…','info',3000);
     } else {
       toast('Clé de chiffrement manquante. Votre partenaire doit se connecter au moins une fois.','error',5000);
     }
