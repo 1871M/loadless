@@ -1797,24 +1797,6 @@ async function onAuth(user){
   }
 
   A.me=me;
-  loadStep('Clés E2E…');
-  try{await withTO(setupKeys(),6000);}catch(e){
-    LL.log('error','crypto','setup_keys_failed',{msg:e?.message||String(e)});
-    // IndexedDB hang ou timeout → recharge automatiquement (transitoire sur Android cold start)
-    // Anti-boucle : max 3 tentatives avant d'afficher un message permanent
-    const retries=parseInt(sessionStorage.getItem('ll-idb-retries')||'0');
-    if(retries<3){
-      sessionStorage.setItem('ll-idb-retries',String(retries+1));
-      toast('Démarrage sécurisé… rechargement ('+( retries+1)+'/3)','info',2500);
-      setTimeout(()=>location.reload(),2600);
-    }else{
-      sessionStorage.removeItem('ll-idb-retries');
-      toast('Stockage sécurisé indisponible. Fermez complètement l\'app et réouvrez-la.','error',0);
-      showSc('s-auth');hideL();
-    }
-    return;
-  }
-  sessionStorage.removeItem('ll-idb-retries');
 
   let couple;
   try{
@@ -1828,11 +1810,13 @@ async function onAuth(user){
 
   if(couple){
     A.couple=couple;
-    launchApp();        // spinner disparaît ici — réseau et crypto en arrière-plan
-    loadPartner().then(()=>_initCryptoAsync()).catch(e=>{
-      LL.log('warn','auth','load_partner_failed',{msg:e?.message});
-      _initCryptoAsync(); // tente buildKey même sans partenaire (retournera null key)
-    });
+    launchApp();        // spinner disparaît ici — IDB/crypto hors thread spinner
+    // setupKeys (IDB + crypto.subtle) + loadPartner + buildKey : tout en arrière-plan
+    (async()=>{
+      try{await setupKeys();}catch(e){LL.log('error','crypto','setup_keys_failed',{msg:e?.message});}
+      try{await loadPartner();}catch(e){LL.log('warn','auth','load_partner_failed',{msg:e?.message});}
+      _initCryptoAsync();
+    })();
   }
   else{showSc('s-couple');hideL();}
 }
@@ -4625,7 +4609,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.7 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.8 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
