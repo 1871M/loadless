@@ -1,0 +1,58 @@
+/* Display — Fraunces (Recoleta-like, Google Fonts) */
+@font-face {
+  font-family: 'Display';
+  src: local('Fraunces'), local('Palatino Linotype'), local('Georgia');
+  font-weight: 400 700;
+  font-style: normal;
+}
+/* UI — Inter + fallbacks */
+@font-face {
+  font-family: 'UI';
+  src: local('Inter'), local('Segoe UI'), local('Helvetica Neue'), local('Arial');
+  font-weight: 300 800;
+  font-style: normal;
+}
+
+:root{
+  /* Palette Loadless — mockup exact */
+  --bg:#F7EDE2;--surface:#FFFFFF;--border:rgba(0,0,0,0.0);--border2:rgba(0,0,0,0.06);
+  --ink:#2C2448;--muted:#8A7CA6;--faint:#C8BFE0;
+  --p1:#6F63D9;--p1b:#EEEAFF;--p1m:#9089DC;--p1d:#5B4EC0;
+  --p2:#F2A38F;--p2b:#FEF3EF;--p2m:#E0896E;
+  --gold:#F2C94C;--goldb:#FEF8E7;--goldm:#E6B52A;
+  --red:#E57373;--redb:#FDECEA;--redm:#EF9A9A;
+  --green:#66BB6A;--greenb:#F1F8F1;
+  --orange:#FFA07A;--orangeb:#FFF3EE;
+  --r:20px;--r-sm:14px;--r-lg:28px;--r-xl:36px;
+  --sh:0 2px 10px rgba(44,36,72,0.05),0 1px 3px rgba(44,36,72,0.034);
+  --sh-md:0 5px 20px rgba(44,36,72,0.068),0 2px 7px rgba(44,36,72,0.034);
+  --sh-lg:0 14px 40px rgba(44,36,72,0.085),0 3px 14px rgba(44,36,72,0.051);
+  --sh-3d:0 3px 14px rgba(44,36,72,0.068),0 1px 3px rgba(44,36,72,0.034);
+  --sh-glow:0 0 0 4px rgba(155,142,196,.25);
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+}
+:root.dark{
+  --bg:#13111C;--surface:#1E1B2B;--border:rgba(255,255,255,0.0);--border2:rgba(255,255,255,0.09);
+  --ink:#F0EBF8;--muted:#9A8FBD;--faint:#4A4268;
+  --p1:#8B7FE8;--p1b:#221E3A;--p1m:#5049A8;--p1d:#A097F0;
+  --p2:#F2A38F;--p2b:#2A1A15;--p2m:#E07D60;
+  --gold:#F2C94C;--goldb:#1F1A06;--goldm:#B08C1A;
+  --red:#F87171;--redb:#1C0A0A;--redm:#EF4444;
+  --green:#4ADE80;--greenb:#0A1C0A;
+  --orange:#FB923C;--orangeb:#1C1008;
+  --sh:0 4px 16px rgba(0,0,0,0.40),0 1px 4px rgba(0,0,0,0.25);
+  --sh-md:0 8px 32px rgba(0,0,0,0.50),0 2px 8px rgba(0,0,0,0.25);
+  --sh-lg:0 20px 60px rgba(0,0,0,0.60),0 4px 16px rgba(0,0,0,0.35);
+  --sh-3d:0 4px 16px rgba(0,0,0,0.40),0 1px 4px rgba(0,0,0,0.25);
+  --sh-glow:0 0 0 4px rgba(139,127,232,.30);
+}
+:root.dark .skeleton{background:linear-gradient(90deg,#1E1B2B 25%,#2A2540 50%,#1E1B2B 75%);background-size:200% 100%;}
+:root.dark .toast{background:#2A2540;color:#F0EBF8;border:1px solid rgba(255,255,255,0.10);}
+:root.dark .bot-nav-inner,.dark .app-hdr{border-color:rgba(255,255,255,0.06);}
+:root.dark .home-balance-card,:root.dark .w,:root.dark .home-task-row{background:var(--surface);}
+:root.dark .ch-in{background:#2A2540;border-color:rgba(255,255,255,0.08);color:var(--ink);}
+:root.dark .msg.theirs .msg-bb{background:#2A2540;}
+:root.dark .af input,:root.dark .cp-inp,:root.dark .sh-in,:root.dark .sh-qt,:root.dark .sh-ct{background:#2A2540;color:var(--ink);}
+:root.dark .auth-tabs{background:#2A2540;}
+:root.dark .auth-tab.active{background:#3A3560;}
