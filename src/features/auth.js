@@ -31,7 +31,7 @@ async function doLogin(){
     }
     LL.log('info','auth','login_success');
     LL.auditLog?.('login',{uid:data.user.id?.slice(0,8)});
-    await onAuth(data.user);
+    // onAuth déclenché par onAuthStateChange SIGNED_IN (évite le double appel concurrent)
   }catch(e){
     LL.log('warn','auth','login_failed',{message:e.message});
     sm('li-m',e.message==='Invalid login credentials'?'Email ou mot de passe incorrect.':e.message,'err');
