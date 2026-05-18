@@ -20,7 +20,8 @@ function toast(msg,type='info',dur=3000){
 /* ═══ HELPERS ═══ */
 function updatePill(){
   const me=A.me;if(!me)return;
-  const pill=document.getElementById('upill'),av=document.getElementById('pav'),nm=document.getElementById('pnm');
+  const pill=document.getElementById('upill');if(!pill)return; // éléments supprimés du HTML lors du refactoring
+  const av=document.getElementById('pav'),nm=document.getElementById('pnm');
   // ✅ sanitizeColor empêche toute injection CSS via avatar_color
   const col=sanitizeColor(me.avatar_color);
   pill.style.background=col+'22';pill.style.borderColor=col+'55';
