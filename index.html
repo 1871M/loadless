@@ -1656,7 +1656,7 @@ function b64e(buf){return btoa(String.fromCharCode(...(buf instanceof Uint8Array
 let A={
   user:null,me:null,couple:null,partner:null,sharedKey:null,_pk:null,_sessionKey:null,
   // PFS session keys (en mémoire uniquement — jamais persistées)
-  pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,_cryptoInitPending:false,
+  pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,_cryptoInitPending:false,_pfsSetupInProgress:false,
   tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
   wkOff:0,selAc:null,filt:'todo',prio:'low',eTid:null,eph:false,unread:0,avail:{},
   msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true,
@@ -1854,7 +1854,13 @@ async function _refreshProfileAndCouple(user){
   }catch{}
   try{
     const{data:couple}=await withTO(sb.from('couples').select('*').or('partner1_id.eq.'+user.id+',partner2_id.eq.'+user.id).maybeSingle()).catch(()=>({data:null}));
-    if(couple){A.couple=couple;localStorage.setItem('ll-cache-couple-'+user.id,JSON.stringify(couple));}
+    if(couple){
+      A.couple=couple;localStorage.setItem('ll-cache-couple-'+user.id,JSON.stringify(couple));
+    }else if(A.couple){
+      // Couple supprimé — invalider cache et rediriger vers écran foyer
+      A.couple=null;localStorage.removeItem('ll-cache-couple-'+user.id);
+      showSc('s-couple');
+    }
   }catch{}
 }
 
@@ -1937,16 +1943,18 @@ async function buildKey(){
 
     if(knownFingerprint&&knownFingerprint!==newFingerprint){
       // ✅ Clé changée : bloquer et demander confirmation explicite
-      A.sharedKey=null;
-      A._keyPendingConfirmation={pubKey:newPubKey,fingerprint:newFingerprint};
-      toast(
-        '⚠️ La clé de sécurité de '+esc(A.partner.username)+' a changé ('+newFingerprint+'). '+
-        'Vérifiez avec votre partenaire avant de confirmer.',
-        'error', 0 // 0 = pas de disparition automatique
-      );
-      // Ajouter un bouton de confirmation dans le chat
-      A._keyChangeAlert=true;
-      if(document.getElementById('ch-ms'))renderMsgs();
+      // Guard: ne toast qu'une fois par fingerprint unique (retry loop appelle buildKey 3×)
+      if(!A._keyPendingConfirmation||A._keyPendingConfirmation.fingerprint!==newFingerprint){
+        A.sharedKey=null;
+        A._keyPendingConfirmation={pubKey:newPubKey,fingerprint:newFingerprint};
+        toast(
+          '⚠️ La clé de sécurité de '+esc(A.partner.username)+' a changé ('+newFingerprint+'). '+
+          'Vérifiez avec votre partenaire avant de confirmer.',
+          'error', 0 // 0 = pas de disparition automatique
+        );
+        A._keyChangeAlert=true;
+        if(document.getElementById('ch-ms'))renderMsgs();
+      }
       return;
     }
 
@@ -1960,7 +1968,7 @@ async function buildKey(){
     const thPu=await E2E.impPub(newPubKey);
     A.sharedKey=await E2E.deriv(myPr,thPu);
     // Initialiser les clés de session PFS (async, ne bloque pas le chat)
-    setupPFS().catch(e=>LL.log('warn','crypto','pfs_init_failed',{msg:e.message}));
+    if(!A._pfsSetupInProgress){setupPFS().catch(e=>LL.log('warn','crypto','pfs_init_failed',{msg:e.message}));}
   }catch(e){
     A.sharedKey=null;
     toast('Erreur dérivation clé E2E — chat désactivé','error');
@@ -1993,6 +2001,7 @@ async function _initCryptoAsync(){
       ]);
       if(A.sharedKey){
         LL.log('info','crypto','build_key_success',{attempt});
+        await decryptMsgs(); // re-déchiffrer A.raw avec la vraie clé (placeholders effacés)
         if(document.getElementById('p-chat')?.classList.contains('active'))renderMsgs();
         return;
       }
@@ -2019,7 +2028,8 @@ function _activeKey(){return A.pfsKey||A.sharedKey;}
 function _activeVer(){return A.pfsKey?3:2;}
 
 async function setupPFS(){
-  if(!A.couple||!A.user||!A._pk||!A.partner?.public_key)return;
+  if(A._pfsSetupInProgress||!A.couple||!A.user||!A._pk||!A.partner?.public_key)return;
+  A._pfsSetupInProgress=true;
   try{
     const eph=await E2E.genSession();
     A._sessionPrivKey=eph.privKey; // CryptoKey non-extractable, en mémoire uniquement
@@ -2033,6 +2043,8 @@ async function setupPFS(){
     LL.log('info','crypto','pfs_session_published');
   }catch(e){
     LL.log('warn','crypto','pfs_setup_failed',{msg:e.message});
+  }finally{
+    A._pfsSetupInProgress=false;
   }
 }
 
@@ -3582,12 +3594,16 @@ function renderMsgs(){
     return;
   }
 
-  // ✅ Chat désactivé : raison claire
+  // ✅ Chat désactivé : raison claire (ou init en cours)
   if(!A.sharedKey){
-    const reason=!A.partner
-      ? 'Invitez votre partenaire pour activer le chat chiffré.'
-      : 'En attente de la clé de votre partenaire. Il·elle doit se connecter au moins une fois.';
-    wrap.innerHTML='<div class="empty"><div class="ei">🔐</div><p>Chat désactivé<br><small style="color:var(--muted)">'+reason+'</small></p></div>';
+    const initPending=A._cryptoInitPending;
+    const title=initPending?'Chiffrement en cours…':'Chat désactivé';
+    const reason=initPending
+      ? 'Patientez quelques secondes.'
+      : !A.partner
+        ? 'Invitez votre partenaire pour activer le chat chiffré.'
+        : 'En attente de la clé de votre partenaire. Il·elle doit se connecter au moins une fois.';
+    wrap.innerHTML='<div class="empty"><div class="ei">🔐</div><p>'+title+'<br><small style="color:var(--muted)">'+reason+'</small></p></div>';
     return;
   }
 
@@ -3705,8 +3721,10 @@ function _addToMediaCache(key,url){
 
 // Chiffrement fichier ArrayBuffer → {iv, encrypted}
 async function _encFile(buffer){
+  const key=_activeKey();
+  if(!key)throw new Error('Chiffrement non disponible — réessayez dans un instant');
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:128},_activeKey(),buffer);
+  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:128},key,buffer);
   return{iv:b64e(iv),encrypted:new Uint8Array(enc)};
 }
 
@@ -3714,6 +3732,7 @@ async function _encFile(buffer){
 async function _decFile(encBuffer,ivB64,version){
   const iv=Uint8Array.from(atob(ivB64),c=>c.charCodeAt(0));
   const key=version===3?(A.pfsKey||A.sharedKey):A.sharedKey;
+  if(!key)return null;
   try{
     return await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:128},key,encBuffer);
   }catch{
@@ -4646,7 +4665,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.7.9 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.8.0 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -5031,9 +5050,12 @@ function loadStep(s){const el=document.getElementById('loader-step');if(el)el.te
       if(event==='SIGNED_IN'&&session&&!A.user){
         await onAuth(session.user);
       } else if(event==='SIGNED_OUT'){
-        // Invalider le cache au logout
         if(A.user){localStorage.removeItem('ll-cache-me-'+A.user.id);localStorage.removeItem('ll-cache-couple-'+A.user.id);}
-        A.user=null;showSc('s-auth');hideL();
+        A.user=null;A.me=null;A.couple=null;A.partner=null;
+        A._pk=null;A.sharedKey=null;A.pfsKey=null;
+        A._sessionPrivKey=null;A._sessionPubKey=null;A._myPubKey=null;
+        A._pfsReady=false;A._pfsSetupInProgress=false;A._cryptoInitPending=false;
+        showSc('s-auth');hideL();
       } else if(event==='PASSWORD_RECOVERY'){
         showSc('s-auth');authTab('login');hideL();
         toast('Définissez un nouveau mot de passe.','info');
