@@ -84,7 +84,11 @@ async function onAuth(user){
     // ✅ Cache valide : lancer immédiatement, rafraîchir en arrière-plan
     A.me=cachedMe;
     A.couple=cachedCouple;
-    launchApp();
+    launchApp().catch(e=>{
+      LL.log('error','auth','launch_app_crashed',{msg:e?.message||String(e)});
+      if(typeof hideL==='function')hideL();
+      if(typeof showSc==='function')showSc('s-auth');
+    });
     (async()=>{
       try{await setupKeys();}catch(e){LL.log('error','crypto','setup_keys_failed',{msg:e?.message});}
       try{await loadPartner();}catch(e){LL.log('warn','auth','load_partner_failed',{msg:e?.message});}
@@ -150,7 +154,11 @@ async function onAuth(user){
   if(couple){
     A.couple=couple;
     localStorage.setItem('ll-cache-couple-'+user.id,JSON.stringify(couple));
-    launchApp();
+    launchApp().catch(e=>{
+      LL.log('error','auth','launch_app_crashed',{msg:e?.message||String(e)});
+      if(typeof hideL==='function')hideL();
+      if(typeof showSc==='function')showSc('s-auth');
+    });
     (async()=>{
       try{await setupKeys();}catch(e){LL.log('error','crypto','setup_keys_failed',{msg:e?.message});}
       try{await loadPartner();}catch(e){LL.log('warn','auth','load_partner_failed',{msg:e?.message});}

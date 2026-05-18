@@ -271,4 +271,14 @@ bootApp()
       showSc('s-auth'); hideL()
     }
   })
+
+  // Safety net : si le loader est toujours visible après 15s → force écran auth
+  setTimeout(()=>{
+    const l=document.getElementById('loader');
+    if(l&&l.style.display!=='none'){
+      LL.log('warn','boot','loader_timeout_safety');
+      hideL();showSc('s-auth');
+      toast('Délai de connexion dépassé. Réessayez.','error',5000);
+    }
+  },15000);
 })()

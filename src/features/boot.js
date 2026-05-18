@@ -322,6 +322,7 @@ async function _registerPushToken(){
 }
 
 function setupRT(){
+  if(!A.couple)return;
   const cid=A.couple.id;
   if(A._rtChannel){sb.removeChannel(A._rtChannel);}
 
