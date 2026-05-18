@@ -1828,9 +1828,11 @@ async function onAuth(user){
 
   if(couple){
     A.couple=couple;
-    loadStep('Partenaire…');await loadPartner();
-    launchApp();        // spinner disparaît ici — plus de blocage sur crypto.subtle
-    _initCryptoAsync(); // dérivation clé E2E en arrière-plan, hors thread spinner
+    launchApp();        // spinner disparaît ici — réseau et crypto en arrière-plan
+    loadPartner().then(()=>_initCryptoAsync()).catch(e=>{
+      LL.log('warn','auth','load_partner_failed',{msg:e?.message});
+      _initCryptoAsync(); // tente buildKey même sans partenaire (retournera null key)
+    });
   }
   else{showSc('s-couple');hideL();}
 }
