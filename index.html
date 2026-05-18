@@ -4665,7 +4665,7 @@ function renderSettings(){
     +'<div class="st-sc"><div class="st-st">❓ Aide</div>'
       +'<div class="st-rw" onclick="window.open(\'https://github.com/1871M/loadless/issues\',\'_blank\')" role="button" tabindex="0"><span class="st-ri">🐛</span><div class="st-rf"><div class="st-rt">Signaler un problème</div><div class="st-rs">GitHub Issues</div></div><span class="st-ra">›</span></div>'
       +'<div class="st-rw" onclick="showHelpModal()" role="button" tabindex="0"><span class="st-ri">📖</span><div class="st-rf"><div class="st-rt">Guide d\'utilisation</div><div class="st-rs">Comment utiliser Loadless</div></div><span class="st-ra">›</span></div>'
-      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.8.0 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
+      +'<div class="st-rw" role="button" tabindex="0"><span class="st-ri">💬</span><div class="st-rf"><div class="st-rt">À propos</div><div class="st-rs">Loadless v4.8.1 · Chiffrement E2E · Open Source</div></div><span class="st-ra">›</span></div>'
     +'</div>'
 
     // ── ÉQUITÉ ──
@@ -5022,27 +5022,49 @@ function loadStep(s){const el=document.getElementById('loader-step');if(el)el.te
     }
   });
 
-  // ✅ Gestion session expirée / Supabase indisponible
+  // ✅ Fast path : lecture synchrone du token Supabase (évite freeze Android cold start)
+  // getSession() valide le JWT via crypto.subtle → bloque le thread V8 au cold start
+  // → lire localStorage directement, lancer si cache présent, valider en arrière-plan
   loadStep('Connexion…');
-  let session;
+  let _fastUser=null;
   try{
-    const _gst=sb.auth.getSession();
-    const _gstTm=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
-    const{data}=await Promise.race([_gst,_gstTm]);
-    session=data?.session;
-  }catch(e){
-    showSc('s-auth');hideL();
-    toast('Connexion lente. Vérifiez votre réseau et réessayez.','error',6000);
-    return;
-  }
+    const _raw=localStorage.getItem('sb-lalpmkyxzapiheadvckp-auth-token');
+    if(_raw){const _p=JSON.parse(_raw);_fastUser=_p?.user||null;}
+  }catch{}
 
-  try{
-    if(session?.user){await onAuth(session.user);}
-    else{showSc('s-auth');hideL();}
-  }catch(e){
-    LL.log('error','boot','onauth_crashed',{msg:e?.message||String(e)});
-    showSc('s-auth');hideL();
-    toast('Erreur au démarrage. Réessayez.','error',6000);
+  const _hasCacheFull=_fastUser&&localStorage.getItem('ll-cache-me-'+_fastUser.id)&&localStorage.getItem('ll-cache-couple-'+_fastUser.id);
+
+  if(_hasCacheFull){
+    // Cache complet + token présent → lancement immédiat, validation session en arrière-plan
+    try{await onAuth(_fastUser);}catch(e){LL.log('error','boot','onauth_crashed',{msg:e?.message||String(e)});showSc('s-auth');hideL();}
+    (async()=>{
+      try{
+        const{data}=await sb.auth.getSession();
+        // Token invalide/expiré sans refresh possible → déconnecter
+        if(!data?.session){await sb.auth.signOut();}
+      }catch(e){LL.log('warn','boot','bg_session_check_failed',{msg:e?.message});}
+    })();
+  } else {
+    // Pas de cache complet → getSession() obligatoire (première connexion ou cache absent)
+    let session;
+    try{
+      const _gst=sb.auth.getSession();
+      const _gstTm=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
+      const{data}=await Promise.race([_gst,_gstTm]);
+      session=data?.session;
+    }catch(e){
+      showSc('s-auth');hideL();
+      toast('Connexion lente. Vérifiez votre réseau et réessayez.','error',6000);
+      return;
+    }
+    try{
+      if(session?.user){await onAuth(session.user);}
+      else{showSc('s-auth');hideL();}
+    }catch(e){
+      LL.log('error','boot','onauth_crashed',{msg:e?.message||String(e)});
+      showSc('s-auth');hideL();
+      toast('Erreur au démarrage. Réessayez.','error',6000);
+    }
   }
 
   sb.auth.onAuthStateChange(async(event,session)=>{
