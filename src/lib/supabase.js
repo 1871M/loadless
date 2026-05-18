@@ -12,7 +12,7 @@ export function auditLog(action, detail = {}) {
   const sanitized = sanitizePayload(detail);
   LL.log('info', 'audit', action, { ts: new Date().toISOString(), action, detail: sanitized });
   if (A.user) {
-    sb.rpc('log_audit_event', { p_action: action, p_detail: sanitized }).catch(() => {});
+    (async()=>{try{await sb.rpc('log_audit_event',{p_action:action,p_detail:sanitized});}catch{}})();
   }
 }
 
