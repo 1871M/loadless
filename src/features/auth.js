@@ -27,7 +27,7 @@ async function doLogin(){
     if(!data.user.email_confirmed_at){
       LL.log('warn','auth','login_unconfirmed_email');
       await sb.auth.signOut();
-      sm('li-m','Confirmez d\'abord votre e-mail.','err');btn.disabled=false;btn.textContent='Se connecter';return;
+      sm('li-m','Confirmez d\'abord votre e-mail.','err');return;
     }
     LL.log('info','auth','login_success');
     LL.auditLog?.('login',{uid:data.user.id?.slice(0,8)});
@@ -37,6 +37,7 @@ async function doLogin(){
     sm('li-m',e.message==='Invalid login credentials'?'Email ou mot de passe incorrect.':e.message,'err');
     // ✅ Délai anti-timing attack (évite l'énumération d'utilisateurs)
     await new Promise(r=>setTimeout(r,300+Math.random()*200));
+  }finally{
     btn.disabled=false;btn.textContent='Se connecter';
   }
 }
