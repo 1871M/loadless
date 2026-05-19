@@ -64,7 +64,7 @@ function renderTL(){
     if(A.filt==='todo')tasks=tasks.filter(t=>!t.is_done);
     else if(A.filt==='done')tasks=tasks.filter(t=>t.is_done);
     else if(A.filt==='mine')tasks=tasks.filter(t=>t.assignee_id===me?.id);
-    else if(A.filt==='free')tasks=tasks.filter(t=>!t.assignee_id&&!t.is_done);
+    else if(A.filt==='free')tasks=tasks.filter(t=>!t.assignee_id&&!t.helper_id&&!t.is_done);
   }
   if(!tasks.length){wrap.innerHTML='<div class="empty"><div class="ei">✨</div><p>Aucune tâche ici.<br>Appuyez sur <strong>+ Ajouter</strong>.</p></div>';return;}
   const grps={};tasks.forEach(t=>{if(!grps[t.category])grps[t.category]=[];grps[t.category].push(t);});
@@ -97,20 +97,24 @@ function buildTC(t){
     const u=isMe?me:pt;
     const col=sanitizeColor(u?.avatar_color);
     const init=(u?.username||'?')[0].toUpperCase();
-    const removeFn=uid===t.assignee_id?'release':'leaveTask';
+    const removeFn=uid===t.assignee_id?'release':'seRetirer';
     const clickable=isMe&&!t.is_done;
     const content=u?.avatar_url
       ?'<img src="'+u.avatar_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
       :init;
-    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:28px;height:28px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+content+'</div>';
+    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:22px;height:22px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+content+'</div>';
   }
 
   let pChips=parts.map(uid=>avChip(uid)).join('');
 
   let joinBtn='';
   if(!t.is_personal&&!t.is_done&&!meOn){
-    const fn=!t.assignee_id?'claim':'joinTask';
-    joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px">+ Me positionner</button>';
+    const bothTaken=t.assignee_id&&t.helper_id;
+    if(!bothTaken){
+      const fn=!t.assignee_id?'claim':'sePositionner';
+      const lbl=t.assignee_id?'+ Me positionner aussi':'+ Me positionner';
+      joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px">'+lbl+'</button>';
+    }
   }
 
   // Avatars inline left of edit/delete buttons
@@ -236,30 +240,15 @@ function onPsTg(){document.getElementById('ft-pn').style.display=document.getEle
 function setPrio(p){A.prio=p;updPU();}
 function updPU(){document.querySelectorAll('.pr-op').forEach(o=>o.classList.toggle('sel',o.classList.contains(A.prio)));}
 
-async function joinTask(id){
+async function sePositionner(id){
   const{error}=await sb.from('tasks').update({helper_id:A.user.id}).eq('id',id);
   if(error){toast('Erreur','error');return;}
   _patchTask(id,{helper_id:A.user.id});
-  toast('Tu aides sur cette tâche ! 🤝','success');
 }
-async function leaveTask(id){
+async function seRetirer(id){
   const{error}=await sb.from('tasks').update({helper_id:null}).eq('id',id);
   if(error){toast('Erreur','error');return;}
   _patchTask(id,{helper_id:null});
-}
-async function claimTogether(id){
-  if(!A.partner){toast('Invitez d\'abord votre partenaire.','error');return;}
-  const{error}=await sb.from('tasks').update({assignee_id:A.user.id,helper_id:A.partner.id}).eq('id',id);
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  _patchTask(id,{assignee_id:A.user.id,helper_id:A.partner.id});
-  toast('Vous vous en chargez ensemble 🤝','success');
-}
-async function inviteHelper(id){
-  if(!A.partner){toast('Pas de partenaire lié.','error');return;}
-  const{error}=await sb.from('tasks').update({helper_id:A.partner.id}).eq('id',id);
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  _patchTask(id,{helper_id:A.partner.id});
-  toast(esc(A.partner.username||'Partenaire')+' ajouté comme aide 🤝','success');
 }
 
 async function togT(id){
@@ -280,4 +269,4 @@ async function togT(id){
 }
 
 
-export { renderTasks, renderTL, buildTC, setF, _patchTask, claim, release, delT, openTaskModal, editTask, saveTask, onPsTg, setPrio, updPU, joinTask, leaveTask, claimTogether, inviteHelper, togT }
+export { renderTasks, renderTL, buildTC, setF, _patchTask, claim, release, delT, openTaskModal, editTask, saveTask, onPsTg, setPrio, updPU, sePositionner, seRetirer, togT }
