@@ -108,19 +108,24 @@ function buildTC(t){
   let pChips=parts.map(uid=>avChip(uid)).join('');
 
   let joinBtn='';
-  if(!t.is_personal&&!t.is_done&&!meOn){
-    const bothTaken=t.assignee_id&&t.helper_id;
-    if(!bothTaken){
-      const fn=!t.assignee_id?'claim':'sePositionner';
-      const lbl=t.assignee_id?'+ Me positionner aussi':'+ Me positionner';
-      joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px">'+lbl+'</button>';
+  if(!t.is_personal&&!t.is_done){
+    if(!meOn){
+      const bothTaken=t.assignee_id&&t.helper_id;
+      if(!bothTaken){
+        const fn=!t.assignee_id?'claim':'sePositionner';
+        const lbl=t.assignee_id?'+ Me positionner aussi':'+ Me positionner';
+        joinBtn='<button class="tk-btn free" onclick="'+fn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px">'+lbl+'</button>';
+      }
+    } else {
+      const removeFn=t.assignee_id===meId?'release':'seRetirer';
+      joinBtn='<button class="tk-btn free" onclick="'+removeFn+'(\''+t.id+'\')" style="font-size:10px;margin-top:4px;color:var(--muted)">Se retirer</button>';
     }
   }
 
-  // Avatars inline left of edit/delete buttons
+  // Avatars côte à côte à gauche des boutons modifier/supprimer
   const rightH='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
-    +'<div style="display:flex;align-items:center;gap:4px">'
-      +(pChips?'<div style="display:flex;gap:3px">'+pChips+'</div>':'')
+    +'<div style="display:flex;flex-direction:row;align-items:center;gap:4px;flex-wrap:nowrap">'
+      +(pChips?'<div style="display:flex;flex-direction:row;align-items:center;gap:3px;flex-shrink:0">'+pChips+'</div>':'')
       +'<div class="tc-ax">'
         +'<button class="tc-a" onclick="editTask(\''+t.id+'\')" aria-label="Modifier" title="Modifier"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         +'<button class="tc-a" onclick="delT(\''+t.id+'\')" aria-label="Supprimer" title="Supprimer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'
