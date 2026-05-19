@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
 import android.webkit.PermissionRequest
-import android.webkit.WebView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.getcapacitor.BridgeActivity
@@ -27,8 +26,9 @@ class MainActivity : BridgeActivity() {
         )
     }
 
-    override fun onWebViewCreated(webView: WebView) {
-        webView.webChromeClient = object : BridgeWebChromeClient(bridge) {
+    override fun load() {
+        super.load()
+        bridge.webView.webChromeClient = object : BridgeWebChromeClient(bridge) {
             override fun onPermissionRequest(request: PermissionRequest) {
                 val resources = request.resources
                 if (resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
