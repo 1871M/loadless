@@ -99,10 +99,10 @@ function buildTC(t){
     const init=(u?.username||'?')[0].toUpperCase();
     const removeFn=uid===t.assignee_id?'release':'seRetirer';
     const clickable=isMe&&!t.is_done;
-    const content=u?.avatar_url
-      ?'<img src="'+u.avatar_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-      :init;
-    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:22px;height:22px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+content+'</div>';
+    // Use background-image for photos to avoid the display:flex + overflow:hidden Android WebView sizing bug
+    const bgImg=u?.avatar_url?';background-image:url(\''+u.avatar_url+'\');background-size:cover;background-position:center':'';
+    const txt=u?.avatar_url?'':init;
+    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:22px;height:22px;border-radius:50%;background-color:'+col+'22'+bgImg+';color:'+col+';font-size:9px;font-weight:800;text-align:center;line-height:18px;box-sizing:border-box;border:2px solid '+col+';flex:0 0 22px;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'>'+txt+'</div>';
   }
 
   let pChips=parts.map(uid=>avChip(uid)).join('');
@@ -125,7 +125,7 @@ function buildTC(t){
   // Avatars côte à côte à gauche des boutons modifier/supprimer
   const rightH='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'
     +'<div style="display:flex;flex-direction:row;align-items:center;gap:4px;flex-wrap:nowrap">'
-      +(pChips?'<div style="display:flex;flex-direction:row;align-items:center;gap:3px;flex-shrink:0">'+pChips+'</div>':'')
+      +(pChips?'<div style="display:flex;flex-direction:row;align-items:center;gap:6px;flex-shrink:0">'+pChips+'</div>':'')
       +'<div class="tc-ax">'
         +'<button class="tc-a" onclick="editTask(\''+t.id+'\')" aria-label="Modifier" title="Modifier"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         +'<button class="tc-a" onclick="delT(\''+t.id+'\')" aria-label="Supprimer" title="Supprimer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>'
