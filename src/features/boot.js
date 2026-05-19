@@ -212,6 +212,8 @@ async function loadAll(){
   }
 
   await loadMeals();
+  // Réinitialiser le positionnement des tâches récurrentes si leur période est écoulée
+  if(window.resetRecurringTasks)await window.resetRecurringTasks();
 }
 
 async function loadMeals(){

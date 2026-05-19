@@ -255,17 +255,40 @@ async function togT(id){
   const t=A.tasks.find(x=>x.id===id);
   if(!t)return;
   const isDone=!t.is_done;
+  const now=new Date().toISOString();
   const{error}=await sb.from('tasks').update({is_done:isDone}).eq('id',id);
   if(error){toast('Erreur: '+error.message,'error');return;}
-  // Mise à jour locale immédiate — sans attendre le realtime
   t.is_done=isDone;
-  if(isDone){t.validated_by=A.user?.id;t.validated_at=new Date().toISOString();}
-  else{t.validated_by=null;t.validated_at=null;}
+  if(isDone){
+    t.validated_by=A.user?.id;t.validated_at=now;t.last_done_at=now;
+    sb.from('tasks').update({validated_by:A.user?.id,validated_at:now,last_done_at:now}).eq('id',id).catch(()=>{});
+  } else {
+    t.validated_by=null;t.validated_at=null;
+    sb.from('tasks').update({validated_by:null,validated_at:null}).eq('id',id).catch(()=>{});
+  }
   if(isP('tasks'))renderTasks();
   if(isP('home'))renderHome();
-  // Tracking optionnel en fire-and-forget
-  const tr=isDone?{validated_by:A.user?.id,validated_at:new Date().toISOString()}:{validated_by:null,validated_at:null};
-  sb.from('tasks').update(tr).eq('id',id).catch(()=>{});
+}
+
+export async function resetRecurringTasks(){
+  if(!A.couple)return;
+  const now=new Date();
+  const todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()).toISOString();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-((now.getDay()+6)%7));weekStart.setHours(0,0,0,0);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
+  const toReset=A.tasks.filter(t=>{
+    if(t.frequency==='once'||!t.is_done||!t.last_done_at)return false;
+    if(t.frequency==='daily')return t.last_done_at<todayStart;
+    if(t.frequency==='weekly')return t.last_done_at<weekStart.toISOString();
+    if(t.frequency==='monthly')return t.last_done_at<monthStart;
+    return false;
+  });
+  if(!toReset.length)return;
+  const ids=toReset.map(t=>t.id);
+  await sb.from('tasks').update({is_done:false,assignee_id:null,helper_id:null,last_done_at:null,validated_by:null,validated_at:null}).in('id',ids);
+  toReset.forEach(t=>{t.is_done=false;t.assignee_id=null;t.helper_id=null;t.last_done_at=null;t.validated_by=null;t.validated_at=null;});
+  if(isP('tasks'))renderTasks();
+  if(isP('home'))renderHome();
 }
 
 

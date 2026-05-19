@@ -131,7 +131,7 @@ Object.assign(window, {
   _initCryptoAsync, setupPFS, refreshPFSKey, computeFingerprint, _activeKey, _activeVer,
   renderHome, getSugs,
   renderTasks, renderTL, buildTC, setF, _patchTask, claim, release, delT, openTaskModal,
-  editTask, saveTask, onPsTg, setPrio, updPU, sePositionner, seRetirer, togT,
+  editTask, saveTask, onPsTg, setPrio, updPU, sePositionner, seRetirer, togT, resetRecurringTasks,
   renderShop, renderShopItems, openShopModal, saveShopItem, addShop, togShop, delShop, clearDone, editShop,
   renderBudget, _reloadTxs, changeBudgetMonth, openTx, saveTx, delTx, editAccount, saveAccount,
   deleteAccountConfirm, detectSubscriptions, renderDetectedSubs, toggleSubsList,
