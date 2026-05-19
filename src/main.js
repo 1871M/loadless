@@ -26,7 +26,8 @@ import {
   renderMsgs, chSdPressStart, chSdPressEnd, sendMsg, chKey, chResize,
   sendMediaMsg, openAttachMenu, closeAttachMenu, pickMedia, pickFile, handleMediaPick, handleFilePick,
   micPressStart, micPressMove, micPressEnd, micPressCancel, stopAndSendRecording, cancelRecording,
-  updBadge, setEphDur, togEph, setEphSetting, applyEphCustom
+  updBadge, setEphDur, togEph, setEphSetting, applyEphCustom,
+  _playAudioById, _seekAudio, _cycleSpeed, _viewMediaById, _dlFileById
 } from './features/chat.js'
 import {
   renderSettings, doSignOut, delAccount, saveProfile, setPref, applyPrefs,
@@ -143,6 +144,7 @@ Object.assign(window, {
   sendMediaMsg, openAttachMenu, closeAttachMenu, pickMedia, pickFile, handleMediaPick, handleFilePick,
   micPressStart, micPressMove, micPressEnd, micPressCancel, stopAndSendRecording, cancelRecording,
   updBadge, setEphDur, togEph, setEphSetting, applyEphCustom,
+  _playAudioById, _seekAudio, _cycleSpeed, _viewMediaById, _dlFileById,
   renderSettings, doSignOut, delAccount, saveProfile, setPref, applyPrefs,
   openProfileEdit, pickProfilePhoto, handleProfilePhotoPick, showHelpModal,
   saveNotifPref, rotateInviteCode, showFingerprint, regenerateMyKey,
