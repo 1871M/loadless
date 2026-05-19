@@ -18,8 +18,31 @@ export function selectMealSlot(s){
   });
 }
 
+async function _ensureMealHistory(){
+  if(A.mealHistory!==null)return;
+  if(!A.couple)return;
+  const{data}=await sb.from('meals').select('name,ingredients').eq('couple_id',A.couple.id).order('name');
+  const seen=new Set();
+  A.mealHistory=(data||[]).filter(m=>{if(seen.has(m.name))return false;seen.add(m.name);return true;});
+  _renderMealHistory();
+}
+
+function _renderMealHistory(){
+  const wrap=document.getElementById('ml-hist');if(!wrap)return;
+  const hist=A.mealHistory||[];
+  if(!hist.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  wrap.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Repas précédents</div>'
+    +hist.map(m=>'<button class="ml-hc" onclick="pickMealHistory(\''+esc(m.name)+'\',\''+esc((m.ingredients||[]).join(', '))+'\')">'+esc(m.name)+'</button>').join('');
+}
+
+export function pickMealHistory(name,ingr){
+  const nm=document.getElementById('ml-nm');if(nm)nm.value=name;
+  const ig=document.getElementById('ml-ig');if(ig)ig.value=ingr;
+}
+
 export function openMealM(day,slot){
-  _mT={day,slot:slot??2};
+  _mT={day,slot:slot??2};_editMealId=null;
   const slotNames=['Petit-déjeuner','Déjeuner','Dîner'];
   const ttl=document.getElementById('mo-ml-t');
   const sub=document.getElementById('mo-ml-sub');
@@ -28,6 +51,7 @@ export function openMealM(day,slot){
   ['ml-nm','ml-no'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   const ig=document.getElementById('ml-ig');if(ig)ig.value='';
   selectMealSlot(_mT.slot);
+  _ensureMealHistory();
   openM('mo-ml');
   setTimeout(()=>document.getElementById('ml-nm')?.focus(),150);
 }
@@ -46,6 +70,7 @@ export async function saveMeal(){
   },{onConflict:'couple_id,meal_date,slot'}).select().single();
   if(error){toast('Erreur: '+error.message,'error');return;}
   if(data){A.meals[data.meal_date+'-'+data.slot]=data;}
+  A.mealHistory=null; // invalider le cache pour inclure ce nouveau repas
   closeM('mo-ml');toast('Repas enregistré ! 🍽️','success');
   renderMeals();
 }

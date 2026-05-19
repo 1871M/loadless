@@ -2,7 +2,7 @@ export let A={
   user:null,me:null,couple:null,partner:null,sharedKey:null,_pk:null,_sessionKey:null,
   // PFS session keys (en mémoire uniquement — jamais persistées)
   pfsKey:null,_sessionPrivKey:null,_sessionPubKey:null,_pfsReady:false,_cryptoInitPending:false,_pfsSetupInProgress:false,
-  tasks:[],shop:[],accounts:[],txs:[],meals:{},msgs:[],raw:[],
+  tasks:[],shop:[],accounts:[],txs:[],meals:{},mealHistory:null,msgs:[],raw:[],
   wkOff:0,selAc:null,filt:'todo',prio:'low',eTid:null,eph:false,unread:0,avail:{},
   msgCursor:null,msgHasMore:true,txCursor:null,txHasMore:true,
   _rtChannel:null,_pfsChannel:null,
