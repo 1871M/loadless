@@ -22,7 +22,7 @@ function renderTasks(){
   const c1=inProgress.filter(t=>t.assignee_id===me?.id||t.helper_id===me?.id).length;
   const c2=inProgress.filter(t=>t.assignee_id===pt?.id||t.helper_id===pt?.id).length;
   const diff=Math.abs(p1-50);
-  const tip=vtot===0?'Validez vos premières tâches pour voir l\''équité 🙌':diff<=8?'Répartition équilibrée ✅':'Écart de '+diff+'% — à rééquilibrer';
+  const tip=vtot===0?'Validez vos premières tâches pour voir l\'équité 🙌':diff<=8?'Répartition équilibrée ✅':'Écart de '+diff+'% — à rééquilibrer';
   const all=shared.length,todo=shared.filter(t=>!t.is_done).length,done=shared.filter(t=>t.is_done).length;
   const mine=inProgress.filter(t=>t.assignee_id===me?.id||t.helper_id===me?.id).length;
   const free=shared.filter(t=>!t.is_done&&!t.assignee_id&&!t.helper_id).length;
@@ -72,7 +72,7 @@ function renderTL(){
   Object.entries(grps).forEach(([cat,list])=>{
     const c=CATS[cat]||CATS.autre;
     const g=document.createElement('div');g.className='cat-g';
-    g.innerHTML='<div class="cat-hd"><div class="cat-ic" style="background:'+c.bg+';border:1.5px solid '+c.bd+'">'+c.i+'</div><span class="cat-lb">'+c.l+'</span><button class="cat-ab" onclick="openTaskModal(\''+cat+'\')"'>+ Ajouter</button></div>';
+    g.innerHTML='<div class="cat-hd"><div class="cat-ic" style="background:'+c.bg+';border:1.5px solid '+c.bd+'">'+c.i+'</div><span class="cat-lb">'+c.l+'</span><button class="cat-ab" onclick="openTaskModal(\''+cat+'\')">>+ Ajouter</button></div>';
     list.forEach(t=>g.appendChild(buildTC(t)));
     wrap.appendChild(g);
   });
@@ -102,7 +102,7 @@ function buildTC(t){
     const content=u?.avatar_url
       ?'<img src="'+u.avatar_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
       :init;
-    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':'')+'" title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:28px;height:28px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'">'+content+'</div>';
+    return '<div onclick="'+(clickable?removeFn+'(\''+t.id+'\')':''+'"')+' title="'+(clickable?'Me retirer':esc(u?.username||''))+'" style="width:28px;height:28px;border-radius:50%;background:'+col+'22;color:'+col+';font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid '+col+';overflow:hidden;flex-shrink:0;'+(clickable?'cursor:pointer;box-shadow:0 2px 6px '+col+'44':'')+'">'+content+'</div>';
   }
 
   let pChips=parts.map(uid=>avChip(uid)).join('');
@@ -125,7 +125,7 @@ function buildTC(t){
     +joinBtn
     +'</div>';
 
-  div.innerHTML='<div class="tc-ck'+(t.is_done?' chk':'')+'" onclick="togT(\''+t.id+'\')" role="button" aria-label="'+(t.is_done?'Marquer non terminée':'Marquer terminée')+'">'+(t.is_done?'✓':'')+'</div>'
+  div.innerHTML='<div class="tc-ck'+(t.is_done?' chk':'')'" onclick="togT(\''+t.id+'\')" role="button" aria-label="'+(t.is_done?'Marquer non terminée':'Marquer terminée')+'">'+(t.is_done?'✓':'')+'</div>'
     +'<div class="tc-bd"><div class="tc-tt">'+esc(t.title)+'</div>'
     +'<div class="tc-mt"><span class="tc-tg" style="background:'+pb+';color:'+pc+'">'+pl+'</span>'
     +(t.duration_minutes?'<span class="tc-fr">⏱'+t.duration_minutes+'min</span>':'')
