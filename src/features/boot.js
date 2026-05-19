@@ -476,17 +476,17 @@ function bootApp(){
 
   // ═══ SWIPE NAVIGATION ═══
   (function(){
-    const NAV_ORDER=['home','calendar','chat','tasks','budget','shop','meals','settings'];
+    const NAV_ORDER=['home','tasks','shop','calendar','chat','budget','meals','settings'];
     let _sx=0,_sy=0,_sTime=0;
     document.getElementById('s-app').addEventListener('touchstart',e=>{
       if(e.touches.length!==1)return;
       _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_sTime=Date.now();
     },{passive:true});
     document.getElementById('s-app').addEventListener('touchend',e=>{
-      if(Date.now()-_sTime>500)return;
+      if(Date.now()-_sTime>400)return;
       const dx=e.changedTouches[0].clientX-_sx;
       const dy=e.changedTouches[0].clientY-_sy;
-      if(Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6)return;
+      if(Math.abs(dx)<120||Math.abs(dy)>Math.abs(dx)*0.4)return;
       if(_sx<60)return; // left-edge reserved for drawer
       if(document.getElementById('nav-drawer').classList.contains('open'))return;
       // Don't swipe inside scrollable chat or modals
