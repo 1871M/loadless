@@ -484,7 +484,12 @@ export async function startRecording(){
       if(t)t.textContent=Math.floor(_recSeconds/60)+':'+((_recSeconds%60)+'').padStart(2,'0');
       if(_recSeconds>=_MAX_REC_SECS)stopAndSendRecording();
     },1000);
-  }catch(e){_isRecording=false;toast('Microphone inaccessible: '+e.message,'error');}
+  }catch(e){
+    _isRecording=false;
+    if(e.name==='NotAllowedError')toast('Micro refusé — autorise le micro dans Réglages → Applis → Loadless','error');
+    else if(e.name==='NotFoundError')toast('Aucun microphone détecté.','error');
+    else toast('Microphone inaccessible : '+e.message,'error');
+  }
 }
 
 export function _stopRecCleanup(){
