@@ -1,6 +1,6 @@
 {
   "name": "loadless",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "private": true,
   "description": "Loadless — Gérez votre foyer en équité",
   "scripts": {
