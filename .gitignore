@@ -12,4 +12,5 @@ npm-debug.log*
 config.json
 *.keystore
 android/app/keystore.properties
+android/app/google-services.json
 .claude/
