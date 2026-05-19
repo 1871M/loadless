@@ -194,17 +194,23 @@ export async function _uploadMedia(file){
 }
 
 // Download + déchiffrement depuis R2
-export async function _downloadMedia(mediaUrl,iv,version){
+// mimeType doit être passé pour les blobs audio/video sinon Android WebView ne peut pas décoder
+export async function _downloadMedia(mediaUrl,iv,version,mimeType){
   if(_mediaCache.has(mediaUrl))return _mediaCache.get(mediaUrl);
-  const{data,error}=await sb.functions.invoke('get-download-url',{body:{key:mediaUrl}});
-  if(error||!data?.downloadUrl)return null;
-  const res=await fetch(data.downloadUrl);
-  if(!res.ok)return null;
-  const encBuffer=await res.arrayBuffer();
-  const plain=await _decFile(encBuffer,iv,version||2);
-  const url=URL.createObjectURL(new Blob([plain]));
-  _addToMediaCache(mediaUrl,url);
-  return url;
+  try{
+    const{data,error}=await sb.functions.invoke('get-download-url',{body:{key:mediaUrl}});
+    if(error||!data?.downloadUrl)return null;
+    const res=await fetch(data.downloadUrl);
+    if(!res.ok)return null;
+    const encBuffer=await res.arrayBuffer();
+    const plain=await _decFile(encBuffer,iv,version||2);
+    const url=URL.createObjectURL(new Blob([plain],mimeType?{type:mimeType}:{}));
+    _addToMediaCache(mediaUrl,url);
+    return url;
+  }catch(e){
+    LL.log('error','media','download_failed',{msg:e.message});
+    return null;
+  }
 }
 
 // Compression image (canvas → JPEG)
@@ -317,30 +323,39 @@ export async function _loadImgThumb(msgId,mediaUrl,iv,type,version){
 // Lecteur audio (lookup metadata par ID — évite escaping de paramètres)
 export async function _playAudioById(msgId){
   const meta=_msgMeta.get(msgId);if(!meta)return;
-  const btn=document.getElementById('abtn-'+msgId);
-  const prog=document.getElementById('apr-'+msgId);
-  const dur=document.getElementById('adur-'+msgId);
+  // Getters live — relit le DOM à chaque appel pour résister aux re-rendus du chat
+  const getBtn=()=>document.getElementById('abtn-'+msgId);
+  const getProg=()=>document.getElementById('apr-'+msgId);
+  const getDur=()=>document.getElementById('adur-'+msgId);
   if(_audioPlayers.has(msgId)){
     const a=_audioPlayers.get(msgId);
-    if(a.paused){a.play();}else{a.pause();}
+    if(a.paused){a.play().catch(e=>{const b=getBtn();if(b)b.textContent='▶';});}
+    else{a.pause();}
     return;
   }
-  if(btn)btn.textContent='⏳';
-  const objUrl=await _downloadMedia(meta.url,meta.iv,meta.version||2);
-  if(!objUrl){toast('Erreur chargement audio.','error');if(btn)btn.textContent='▶';return;}
+  const b0=getBtn();if(b0)b0.textContent='⏳';
+  // Passer 'audio/webm' pour que Android WebView sache décoder le blob
+  const objUrl=await _downloadMedia(meta.url,meta.iv,meta.version||2,'audio/webm');
+  if(!objUrl){toast('Erreur chargement audio.','error');const b=getBtn();if(b)b.textContent='▶';return;}
   const audio=new Audio(objUrl);
+  // Appliquer la vitesse pré-sélectionnée si l'utilisateur l'a changée avant de lancer
+  if(_msgSpd.has(msgId))audio.playbackRate=_msgSpd.get(msgId);
   _audioPlayers.set(msgId,audio);
   audio.ontimeupdate=()=>{
     if(!audio.duration)return;
     const p=(audio.currentTime/audio.duration)*100;
-    if(prog)prog.style.width=p+'%';
+    const pr=getProg();if(pr)pr.style.width=p+'%';
     const rem=Math.ceil(audio.duration-audio.currentTime);
-    if(dur)dur.textContent=Math.floor(rem/60)+':'+(rem%60+'').padStart(2,'0');
+    const d=getDur();if(d)d.textContent=Math.floor(rem/60)+':'+(rem%60+'').padStart(2,'0');
   };
-  audio.onended=()=>{if(btn)btn.textContent='▶';if(prog)prog.style.width='0%';};
-  audio.onplay=()=>{if(btn)btn.textContent='⏸';};
-  audio.onpause=()=>{if(btn)btn.textContent='▶';};
-  audio.play();
+  audio.onended=()=>{const b=getBtn();if(b)b.textContent='▶';const pr=getProg();if(pr)pr.style.width='0%';};
+  audio.onplay=()=>{const b=getBtn();if(b)b.textContent='⏸';};
+  audio.onpause=()=>{const b=getBtn();if(b)b.textContent='▶';};
+  audio.play().catch(e=>{
+    LL.log('error','audio','play_failed',{msg:e.message});
+    toast('Lecture audio impossible : '+e.message,'error',5000);
+    const b=getBtn();if(b)b.textContent='▶';
+  });
 }
 export function _seekAudio(e,msgId){
   const a=_audioPlayers.get(msgId);if(!a||!a.duration)return;
