@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr" class="high-contrast">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#F7EDE2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Loadless">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://lalpmkyxzapiheadvckp.supabase.co wss://lalpmkyxzapiheadvckp.supabase.co https://*.r2.cloudflarestorage.com; img-src 'self' data: blob:; media-src blob:; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(self), geolocation=(), payment=()">
+<title>Loadless</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/assets/lib/supabase.min.js" integrity="sha256-U5uxwocnDRuaZGtKt6u8XeZ/GXMsR570wzovGIyeSlw=" crossorigin="anonymous"></script>
+<script src="/assets/lib/qrcode.min.js" integrity="sha256-uyNl5JAvT4SFLPQCXm9qYDJaaCrq+kP7Y7f8jwmNHvI=" crossorigin="anonymous"></script>
+<script src="/assets/lib/argon2.min.js"></script>
+  <script type="module" crossorigin src="/assets/index.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index.css">
+</head>
+<body role="application" aria-label="Loadless — Gestion du foyer"><div id="toast-wrap" aria-live="polite" aria-atomic="false"></div>
+<div id="loader"><div class="ll-logo" style="display:flex;flex-direction:column;align-items:center;gap:8px"><img src="/assets/icon.png" alt="Loadless" style="width:72px;height:72px;object-fit:cover;border-radius:20px;margin-bottom:4px"><span style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:700;color:var(--ink)">Load<span style="color:var(--p1d)">less</span></span></div><div class="spin"></div><div id="loader-step" style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center;min-height:16px"></div></div>
+
+<!-- AUTH -->
+<div id="s-auth" class="screen">
+<div class="auth-card">
+  <div class="auth-logo"><img src="/assets/icon.png" alt="Loadless" style="width:52px;height:52px;border-radius:16px;object-fit:cover;flex-shrink:0"><div class="auth-logo-tx">Load<span>less</span></div></div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="authTab('login')">Connexion</button>
+    <button class="auth-tab" onclick="authTab('register')">Inscription</button>
+  </div>
+  <div id="fl" class="auth-form">
+    <div class="af"><label>Email</label><input id="li-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="af"><label>Mot de passe</label><input id="li-p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <div id="li-m"></div>
+    <button class="btn-p" id="btn-li" onclick="doLogin()">Se connecter</button>
+    <div class="auth-link" onclick="authTab('forgot')">Mot de passe oublié ? <span>Réinitialiser</span></div>
+  </div>
+  <div id="fr" class="auth-form" style="display:none">
+    <div class="af"><label>Pseudo</label><input id="rg-u" type="text" placeholder="Ex: Alex" maxlength="20"></div>
+    <div class="af"><label>Email</label><input id="rg-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="af"><label>Mot de passe (8 car. min.)</label><input id="rg-p" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+    <div id="rg-m"></div>
+    <button class="btn-p" id="btn-rg" onclick="doRegister()">Créer mon compte</button>
+    <div class="auth-priv">🛡️ <span>Messages chiffrés E2E. Aucune donnée vendue. Données liées à votre foyer uniquement.</span></div>
+  </div>
+  <div id="ff" class="auth-form" style="display:none">
+    <div class="af"><label>Votre email</label><input id="fg-e" type="email" placeholder="votre@email.com"></div>
+    <div id="fg-m"></div>
+    <button class="btn-p" id="btn-fg" onclick="doForgot()">Envoyer le lien de réinitialisation</button>
+    <div class="auth-link" onclick="authTab('login')">← Retour</div>
+  </div>
+</div>
+</div>
+
+<!-- COUPLE SETUP -->
+<div id="s-couple" class="screen">
+<div class="cp-card">
+  <div id="cp-ch">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><div class="auth-logo-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="cp-title" style="margin-bottom:0">Bienvenue !</div></div>
+    <div class="cp-sub">Créez votre foyer ou rejoignez celui de votre partenaire.</div>
+    <div class="cp-opt" onclick="cpSh('cr')"><h3>✨ Créer un foyer</h3><p>Votre partenaire rejoindra via un code d'invitation.</p></div>
+    <div class="cp-sep">— ou —</div>
+    <div class="cp-opt" onclick="cpSh('jo')"><h3>🔗 Rejoindre un foyer</h3><p>Entrez le code partagé par votre partenaire.</p></div>
+  </div>
+  <div id="cp-cr" style="display:none">
+    <div class="cp-title">Créer votre foyer</div>
+    <div class="cp-sub">Donnez un nom à votre foyer.</div>
+    <div class="cp-form">
+      <input class="cp-inp" id="cc-n" type="text" placeholder="Ex: Chez nous 🏠" maxlength="40">
+      <div id="cc-m" class="cp-msg" style="display:none"></div>
+      <button class="btn-cp" onclick="doCreate()">Créer →</button>
+    </div>
+    <div class="cp-back" onclick="cpSh('ch')">← Retour</div>
+  </div>
+  <div id="cp-jo" style="display:none">
+    <div class="cp-title">Rejoindre un foyer</div>
+    <div class="cp-sub">Entrez le code de votre partenaire.</div>
+    <div class="cp-form">
+      <input class="cp-inp" id="cj-c" type="text" placeholder="CODE (8 car.)" maxlength="8" style="text-transform:uppercase;letter-spacing:.12em;font-size:20px;font-weight:800;text-align:center">
+      <div id="cj-m" class="cp-msg" style="display:none"></div>
+      <button class="btn-cp" onclick="doJoin()">Rejoindre →</button>
+    </div>
+    <div class="cp-back" onclick="cpSh('ch')">← Retour</div>
+  </div>
+  <div id="cp-ok" style="display:none">
+    <div class="cp-title">Foyer créé ! 🎉</div>
+    <div class="cp-sub">Partagez ce code à votre partenaire pour qu'il rejoigne.</div>
+    <div class="inv-box"><span class="code" id="inv-cd">——</span><p>Code d'invitation · valable indéfiniment</p></div>
+    <button class="btn-cp" onclick="copyCode(document.getElementById('inv-cd').textContent)">📋 Copier le code</button>
+    <button class="btn-cp ghost" style="margin-top:9px" onclick="launchApp()">Continuer →</button>
+  </div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="s-app" class="screen">
+  <header class="app-hdr">
+    <div class="hdr-greet">
+      <h1 class="hdr-title" id="hdr-greet-title">Bonjour 👋</h1>
+      <p class="hdr-sub" id="hdr-greet-sub">Ce jour, on avance ensemble 💜</p>
+    </div>
+    <button class="hdr-bell" onclick="showPage('settings',document.getElementById('n-st'))" aria-label="Paramètres">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+  <div id="p-home" class="page"></div>
+  <div id="p-tasks" class="page"></div>
+  <div id="p-shop" class="page"></div>
+  <div id="p-budget" class="page"></div>
+  <div id="p-meals" class="page"></div>
+  <div id="p-calendar" class="page"></div>
+  <div id="p-chat" class="page">
+    <div class="ch-wr">
+      <div id="ch-eb" class="ch-eb" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Auto-suppression :
+        <select id="eph-dur" onchange="setEphDur(this.value)" style="background:var(--goldb);border:1px solid var(--goldm);border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;color:var(--goldm);outline:none">
+          <option value="30000">30 secondes</option>
+          <option value="300000">5 minutes</option>
+          <option value="3600000">1 heure</option>
+          <option value="28800000">8 heures</option>
+          <option value="86400000" selected>24 heures</option>
+          <option value="604800000">1 semaine</option>
+          <option value="2419200000">4 semaines</option>
+          <option value="custom">Personnalisé…</option>
+        </select>
+      </div>
+      <div class="ch-ms" id="ch-ms"><div class="empty"><div class="ei">💬</div><p>Espace privé · 🔒 Chiffré de bout en bout<br><span style="font-size:10px;opacity:.7">Appui long sur ✉ pour activer l'auto-suppression</span></p></div></div>
+      <!-- Barre enregistrement vocal -->
+      <div class="ch-rec-bar" id="ch-rec-bar">
+        <span class="ch-rec-dot"></span>
+        <span id="ch-rec-time">0:00</span>
+        <span id="ch-rec-hint" style="flex:1;font-size:11px;color:var(--muted)">← Glisser pour annuler</span>
+      </div>
+      <div class="ch-iw" style="position:relative;">
+        <!-- Menu pièce jointe -->
+        <div class="ch-att-menu" id="ch-att-menu">
+          <button class="ch-att-item" onclick="pickMedia()">🖼 Photo / Vidéo</button>
+          <button class="ch-att-item" onclick="pickFile()">📄 Fichier</button>
+        </div>
+        <!-- Inputs fichiers cachés -->
+        <input type="file" id="ch-fi-media" accept="image/*,video/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleMediaPick(this)">
+        <input type="file" id="ch-fi-file" accept="*/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleFilePick(this)">
+        <input type="file" id="pp-fi-photo" accept="image/*" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" onchange="handleProfilePhotoPick(this)">
+        <!-- Bouton pièce jointe -->
+        <button class="ch-att" id="ch-att-btn" onclick="openAttachMenu()" aria-label="Joindre un fichier">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <textarea class="ch-in" id="ch-in" placeholder="Message…" rows="1" onkeydown="chKey(event)" oninput="chResize(this)"></textarea>
+        <div class="ch-bts">
+          <button class="ch-sd" id="ch-sd-btn"
+            onclick="sendMsg()"
+            onpointerdown="chSdPressStart(event)"
+            onpointerup="chSdPressEnd(event)"
+            onpointerleave="chSdPressEnd(event)"
+            aria-label="Envoyer — appui long pour messages éphémères">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </button>
+          <!-- Bouton microphone -->
+          <button class="ch-mic" id="ch-mic-btn"
+            onpointerdown="micPressStart(event)"
+            onpointermove="micPressMove(event)"
+            onpointerup="micPressEnd(event)"
+            onpointercancel="micPressCancel(event)"
+            aria-label="Message vocal — appui long">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="p-equity" class="page"></div>
+  <div id="p-settings" class="page"></div>
+  <!-- FAB — Bouton flottant ajouter -->
+  <button class="fab" id="fab-btn" onclick="quickAdd()" aria-label="Ajouter un élément" role="button">
+    <span style="font-size:24px;line-height:1">＋</span>
+    <span class="fab-tooltip">Ajouter</span>
+  </button>
+
+  <nav class="bot-nav" role="navigation" aria-label="Navigation principale">
+    <div class="bot-nav-inner" id="bot-nav-inner">
+    <button class="nav-it active" id="n-ho" onclick="showPage('home')" aria-label="Accueil">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Accueil</button>
+    <button class="nav-it" id="n-tk" onclick="showPage('tasks')" aria-label="Tâches">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tâches</button>
+    <button class="nav-it" id="n-sh" onclick="showPage('shop')" aria-label="Courses">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>Courses</button>
+    <button class="nav-it" id="n-cal" onclick="showPage('calendar')" aria-label="Agenda">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Agenda</button>
+    <button class="nav-it" id="n-ch" onclick="showPage('chat')" aria-label="Chat">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Chat<span class="nbadge" id="ch-bd" style="display:none"></span></button>
+    <button class="nav-it" id="n-bg" onclick="showPage('budget')" aria-label="Budget">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Budget</button>
+    <button class="nav-it" id="n-ml" onclick="showPage('meals')" aria-label="Repas">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span>Repas</button>
+    <button class="nav-it" id="n-st" onclick="showPage('settings')" aria-label="Paramètres">
+      <span class="ni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>Paramètres</button>
+    </div>
+  </nav>
+</div>
+
+<!-- SIDE DRAWER -->
+<div id="nav-drawer" class="nav-drawer" role="navigation" aria-label="Menu principal">
+  <div class="nd-logo">
+    <svg width="30" height="30" viewBox="0 0 1024 1024" style="border-radius:8px;flex-shrink:0">
+      <rect width="1024" height="1024" fill="#5B4EC0"/>
+      <g transform="translate(512,490) scale(20,20) translate(-12,-12)">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>
+    <span class="nd-wm">Loadless</span>
+    <button class="nd-cls" onclick="closeDrawer()" aria-label="Fermer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="nd-nav" role="menu">
+    <button class="nd-it active" id="nd-ho" onclick="showPage('home');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Accueil
+    </button>
+    <button class="nd-it" id="nd-cal" onclick="showPage('calendar');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Agenda
+    </button>
+    <button class="nd-it" id="nd-ch" onclick="showPage('chat');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Chat
+      <span class="nd-badge" id="nd-ch-bd"></span>
+    </button>
+    <div class="nd-sep"></div>
+    <button class="nd-it" id="nd-tk" onclick="showPage('tasks');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tâches
+    </button>
+    <button class="nd-it" id="nd-bg" onclick="showPage('budget');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Budget
+    </button>
+    <button class="nd-it" id="nd-sh" onclick="showPage('shop');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>Courses
+    </button>
+    <button class="nd-it" id="nd-ml" onclick="showPage('meals');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span>Repas
+    </button>
+    <div class="nd-sep"></div>
+    <button class="nd-it" id="nd-st" onclick="showPage('settings');closeDrawer()" role="menuitem">
+      <span class="nd-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>Paramètres
+    </button>
+  </div>
+</div>
+<div id="nav-overlay" class="nav-overlay" onclick="closeDrawer()"></div>
+
+<!-- MODAL TÂCHE -->
+<div class="mo-ov" id="mo-tk" onclick="cMO(event,'mo-tk')">
+<div class="modal">
+  <div class="mo-tt" id="mt-t">Nouvelle tâche</div>
+  <div class="fc">
+    <div class="fd"><label>Titre *</label><input id="ft-ti" type="text" placeholder="Ex : Passer l'aspirateur…"></div>
+    <div class="fd"><label>Catégorie</label>
+      <select id="ft-ca">
+        <option value="menage">🧹 Ménage</option><option value="admin">📄 Administratif</option>
+        <option value="cuisine">🍳 Cuisine</option><option value="reparation">🔧 Réparation</option>
+        <option value="jardin">🌿 Jardin</option><option value="animaux">🐾 Animaux</option>
+        <option value="autre">📌 Autre</option>
+      </select>
+    </div>
+    <div class="fd"><label>Priorité</label>
+      <div class="pr-rw">
+        <div class="pr-op low sel" onclick="setPrio('low',this)">🟢 Faible</div>
+        <div class="pr-op med" onclick="setPrio('med',this)">🟡 Moyenne</div>
+        <div class="pr-op hgh" onclick="setPrio('hgh',this)">🔴 Urgente</div>
+      </div>
+    </div>
+    <div class="fd-rw">
+      <div class="fd"><label>Durée (min)</label><input id="ft-du" type="number" min="5" step="5" placeholder="30"></div>
+      <div class="fd"><label>Fréquence</label>
+        <select id="ft-fr"><option value="once">Une fois</option><option value="daily">Quotidien</option><option value="weekly">Hebdo</option><option value="monthly">Mensuel</option></select>
+      </div>
+    </div>
+    <div class="fd"><label>Échéance</label><input id="ft-de" type="date"></div>
+    <div class="tg-rw">
+      <span class="tg-lb">🔒 Tâche personnelle — ne compte pas dans l'équité partagée</span>
+      <label class="tg"><input type="checkbox" id="ft-ps" onchange="onPsTg()"><span class="tg-sl"></span></label>
+    </div>
+    <div id="ft-pn" style="display:none;font-size:11px;color:var(--muted);background:var(--goldb);border:1px solid var(--goldm);border-radius:9px;padding:9px 11px">Visible uniquement par vous. Non comptabilisée dans les stats du foyer.</div>
+    <div class="fd"><label>Note</label><textarea id="ft-no" placeholder="Détails…"></textarea></div>
+  </div>
+  <div class="mo-bts"><button class="btn-cc" onclick="closeM('mo-tk')">Annuler</button><button class="btn-sv" onclick="saveTask()">Enregistrer</button></div>
+</div>
+</div>
+
+<!-- MODAL TRANSACTION -->
+<div class="mo-ov" id="mo-tx" onclick="cMO(event,'mo-tx')">
+<div class="modal">
+  <div class="mo-tt" id="mo-tx-t">Dépense</div>
+  <div class="fc">
+    <div class="fd"><label>Libellé *</label><input id="tx-ti" type="text" placeholder="Ex : Loyer…"></div>
+    <div class="fd-rw">
+      <div class="fd"><label>Montant (€) *</label><input id="tx-am" type="number" step="0.01" min="0.01" placeholder="0.00"></div>
+      <div class="fd"><label>Date</label><input id="tx-dt" type="date"></div>
+    </div>
+    <div class="fd-rw">
+      <div class="fd"><label>Type</label>
+        <select id="tx-ty">
+          <option value="expense">💸 Dépense</option><option value="income">💰 Revenu</option>
+          <option value="recurring">🔄 Prélèvement</option><option value="withdrawal">🏧 Retrait</option>
+        </select>
+      </div>
+      <div class="fd"><label>Compte</label><select id="tx-ac"></select></div>
+    </div>
+    <div class="fd"><label>Catégorie</label>
+      <select id="tx-ca">
+        <option value="logement">🏠 Logement</option><option value="alimentation">🛒 Alimentation</option>
+        <option value="transport">🚗 Transport</option><option value="sante">🏥 Santé</option>
+        <option value="loisirs">🎭 Loisirs</option><option value="animaux">🐾 Animaux</option>
+        <option value="abonnement">📱 Abonnements</option><option value="autre">📌 Autre</option>
+      </select>
+    </div>
+    <div class="fd"><label>Note</label><input id="tx-no" type="text" placeholder="Optionnel…"></div>
+  </div>
+  <div class="mo-bts"><button class="btn-cc" onclick="_editTxId=null;closeM('mo-tx')">Annuler</button><button class="btn-sv" onclick="saveTx()">Enregistrer</button></div>
+</div>
+</div>
+
+<!-- MODAL COMPTE -->
+<div class="mo-ov" id="mo-ac" onclick="cMO(event,'mo-ac')">
+<div class="modal">
+  <div class="mo-tt">Ajouter un compte</div>
+  <div class="fc">
+    <div class="fd"><label>Nom *</label><input id="ac-nm" type="text" placeholder="Ex : Compte commun…"></div>
+    <div class="fd"><label>Type</label>
+      <select id="ac-ty"><option value="courant">💳 Compte courant</option><option value="epargne">🏦 Épargne</option><option value="especes">💵 Espèces</option></select>
+    </div>
+    <div class="fd-rw">
+      <div class="fd"><label>Solde initial (€)</label><input id="ac-bl" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fd"><label>Couleur</label>
+        <select id="ac-co"><option value="#8B5CF6">💜 Violet</option><option value="#0D9488">💚 Vert</option><option value="#D97706">🟡 Or</option><option value="#DC2626">❤️ Rouge</option><option value="#2563EB">💙 Bleu</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="mo-bts"><button class="btn-cc" onclick="_editAcId=null;closeM('mo-ac')">Annuler</button><button class="btn-sv" onclick="saveAccount()">Créer</button></div>
+</div>
+</div>
+
+<!-- MODAL REPAS -->
+<!-- MODAL REPAS — dédié, distinct des tâches -->
+<!-- MODAL ARTICLE COURSES (ajout + édition) -->
+<div class="mo-ov" id="mo-sh" onclick="cMO(event,'mo-sh')" role="dialog" aria-modal="true" aria-labelledby="mo-sh-t">
+<div class="modal">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <div style="width:38px;height:38px;background:linear-gradient(135deg,#FFF7ED,#FED7AA);border:1.5px solid #FDBA74;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px" aria-hidden="true">🛒</div>
+    <div>
+      <div class="mo-tt" id="mo-sh-t" style="margin-bottom:0">Ajouter un article</div>
+      <div id="mo-sh-sub" style="font-size:11px;color:var(--muted)">Liste de courses partagée</div>
+    </div>
+  </div>
+  <div class="fc">
+    <div class="fd"><label for="sh-mo-nm">Nom de l'article *</label><input id="sh-mo-nm" type="text" placeholder="Ex : Pommes, lait, pain…" autocomplete="off"></div>
+    <div class="fd-rw">
+      <div class="fd"><label for="sh-mo-qt">Quantité</label><input id="sh-mo-qt" type="text" placeholder="1, 500g, 2L…" value="1"></div>
+      <div class="fd"><label for="sh-mo-ct">Catégorie</label><select id="sh-mo-ct"></select></div>
+    </div>
+  </div>
+  <div class="mo-bts">
+    <button class="btn-cc" onclick="closeM('mo-sh')">Annuler</button>
+    <button class="btn-sv" onclick="saveShopItem()">Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL REPAS -->
+<div class="mo-ov" id="mo-ml" onclick="cMO(event,'mo-ml')">
+<div class="modal">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <div style="width:38px;height:38px;background:linear-gradient(135deg,#F0FDF4,#D1FAE5);border:1.5px solid #6EE7B7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px">🍽️</div>
+    <div>
+      <div class="mo-tt" id="mo-ml-t" style="margin-bottom:0">Ajouter un repas</div>
+      <div id="mo-ml-sub" style="font-size:11px;color:var(--muted)"></div>
+    </div>
+  </div>
+  <div class="fc">
+    <div class="fd"><label>Plat *</label><input id="ml-nm" type="text" placeholder="Ex : Pasta carbonara…"></div>
+    <div class="fd">
+      <label>Ingrédients <span style="font-weight:400;color:var(--faint)">(séparés par des virgules)</span></label>
+      <textarea id="ml-ig" placeholder="Pâtes, lardons, parmesan, œufs…" style="min-height:72px"></textarea>
+    </div>
+    <div class="fd"><label>Note <span style="font-weight:400;color:var(--faint)">(optionnel)</span></label><input id="ml-no" type="text" placeholder="Sans gluten, pour 4 personnes…"></div>
+    <!-- Sélecteur de slot intégré -->
+    <div class="fd"><label>Moment du repas</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="ml-slot-picker">
+        <div class="ml-slot-opt" data-slot="0" onclick="selectMealSlot(0)" style="border:1.5px solid var(--border);border-radius:11px;padding:10px;text-align:center;cursor:pointer;transition:all .2s">
+          <div style="font-size:18px">🌅</div><div style="font-size:11px;font-weight:700;margin-top:3px">Matin</div>
+        </div>
+        <div class="ml-slot-opt" data-slot="1" onclick="selectMealSlot(1)" style="border:1.5px solid var(--border);border-radius:11px;padding:10px;text-align:center;cursor:pointer;transition:all .2s">
+          <div style="font-size:18px">☀️</div><div style="font-size:11px;font-weight:700;margin-top:3px">Midi</div>
+        </div>
+        <div class="ml-slot-opt sel" data-slot="2" onclick="selectMealSlot(2)" style="border:1.5px solid var(--p1m);background:var(--p1b);border-radius:11px;padding:10px;text-align:center;cursor:pointer;transition:all .2s">
+          <div style="font-size:18px">🌙</div><div style="font-size:11px;font-weight:700;margin-top:3px;color:var(--p1)">Soir</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mo-bts">
+    <button class="btn-cc" onclick="closeM('mo-ml')">Annuler</button>
+    <button class="btn-sv" onclick="saveMeal()">Enregistrer le repas</button>
+  </div>
+</div>
+</div>
+<!-- MODAL CALENDRIER -->
+<div class="mo-ov" id="mo-cal" onclick="cMO(event,'mo-cal')">
+<div class="modal">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--p1b),var(--p1m));border:1.5px solid var(--p1m);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px">📅</div>
+    <div>
+      <div class="mo-tt" id="mo-cal-t" style="margin-bottom:0">Nouvel événement</div>
+      <div id="mo-cal-sub" style="font-size:11px;color:var(--muted)"></div>
+    </div>
+  </div>
+  <div class="fc">
+    <div class="fd"><label>Titre *</label><input id="cal-title" type="text" placeholder="Ex : Rendez-vous médecin…"></div>
+    <div class="fd-rw">
+      <div class="fd"><label>Date *</label><input id="cal-date" type="date"></div>
+      <div class="fd"><label>Heure</label><input id="cal-time" type="time" placeholder="HH:MM"></div>
+    </div>
+    <div class="fd"><label>Fin (optionnel)</label><input id="cal-end" type="time"></div>
+    <div class="fd"><label>Couleur</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="cal-color-picker">
+        <div class="cal-color-opt" data-color="#7C3AED" onclick="selectCalColor('#7C3AED',this)" style="width:28px;height:28px;border-radius:50%;background:#7C3AED;cursor:pointer;border:2.5px solid #7C3AED;box-shadow:0 0 0 2px white,0 0 0 4px #7C3AED"></div>
+        <div class="cal-color-opt" data-color="#0F766E" onclick="selectCalColor('#0F766E',this)" style="width:28px;height:28px;border-radius:50%;background:#0F766E;cursor:pointer;border:2.5px solid transparent"></div>
+        <div class="cal-color-opt" data-color="#B91C1C" onclick="selectCalColor('#B91C1C',this)" style="width:28px;height:28px;border-radius:50%;background:#B91C1C;cursor:pointer;border:2.5px solid transparent"></div>
+        <div class="cal-color-opt" data-color="#B45309" onclick="selectCalColor('#B45309',this)" style="width:28px;height:28px;border-radius:50%;background:#B45309;cursor:pointer;border:2.5px solid transparent"></div>
+        <div class="cal-color-opt" data-color="#1D4ED8" onclick="selectCalColor('#1D4ED8',this)" style="width:28px;height:28px;border-radius:50%;background:#1D4ED8;cursor:pointer;border:2.5px solid transparent"></div>
+        <div class="cal-color-opt" data-color="#BE185D" onclick="selectCalColor('#BE185D',this)" style="width:28px;height:28px;border-radius:50%;background:#BE185D;cursor:pointer;border:2.5px solid transparent"></div>
+      </div>
+    </div>
+    <div class="fd"><label>Note</label><input id="cal-note" type="text" placeholder="Optionnel…"></div>
+  </div>
+  <div class="mo-bts">
+    <button class="btn-cc" onclick="_editCalId=null;closeM('mo-cal')">Annuler</button>
+    <button class="btn-sv" onclick="saveCalEvent()">Enregistrer</button>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

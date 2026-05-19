@@ -1,0 +1,25 @@
+# Service Worker — JAMAIS mis en cache, doit toujours être révalidé
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
+# Manifest — cache court (mises à jour rapides)
+/manifest.json
+  Cache-Control: public, max-age=3600
+
+# Icônes — cache long
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML — pas de cache HTTP (le SW gère le cache applicatif)
+/
+  Cache-Control: no-cache
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+/index.html
+  Cache-Control: no-cache
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff

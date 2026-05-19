@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1A1714">
+<title>LoadLess — Hors ligne</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Inter','Segoe UI','Helvetica Neue',Arial,sans-serif;background:#F4F1ED;color:#18150F;}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.card{background:#FDFCFA;border:1px solid #EAE2D8;border-radius:24px;padding:32px 24px;max-width:380px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(18,15,9,.09);}
+.icon{font-size:48px;margin-bottom:16px;}
+h1{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em;}
+h1 .less{color:#7C3AED;}
+.title{font-family:Georgia,serif;font-size:18px;font-weight:700;margin:18px 0 8px;color:#18150F;}
+p{font-size:13px;color:#6B6358;line-height:1.6;margin-bottom:20px;}
+.btn{background:#7C3AED;color:#fff;border:none;border-radius:12px;padding:13px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .15s;min-height:44px;width:100%;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,.30);}
+.btn:active{transform:scale(.97);}
+.tip{margin-top:16px;font-size:11px;color:#ADA59B;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="icon" aria-hidden="true">📡</div>
+    <h1>Load<span class="less">Less</span></h1>
+    <div class="title">Vous êtes hors ligne</div>
+    <p>Pas de connexion détectée. Vos données restent en sécurité — elles seront synchronisées dès que vous serez à nouveau en ligne.</p>
+    <button class="btn" onclick="location.reload()">Réessayer</button>
+    <div class="tip">💡 Astuce : si l'app était déjà ouverte, fermez et rouvrez-la quand le réseau est rétabli.</div>
+  </div>
+</div>
+<script>
+// Recharger automatiquement dès qu'on retrouve le réseau
+window.addEventListener('online', () => location.reload());
+</script>
+</body>
+</html>

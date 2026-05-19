@@ -1,0 +1,7 @@
+# SPA fallback : toute route inconnue sert index.html (utile pour les deep-links PWA)
+# Note : on garde /sw.js, /manifest.json, /offline.html, /icons/* en accès direct.
+/sw.js          /sw.js          200
+/manifest.json  /manifest.json  200
+/offline.html   /offline.html   200
+/icons/*        /icons/:splat   200
+/*              /index.html     200
