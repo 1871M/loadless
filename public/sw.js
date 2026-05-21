@@ -4,7 +4,7 @@
    network-first pour les calls Supabase (jamais cachés).
    ═══════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'loadless-v5.4';
+const CACHE_VERSION = 'loadless-v5.5';
 const SHELL_CACHE  = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

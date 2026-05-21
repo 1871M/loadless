@@ -2,7 +2,7 @@
 <html lang="fr" class="high-contrast">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#F7EDE2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,22 +34,22 @@
     <button class="auth-tab" onclick="authTab('register')">Inscription</button>
   </div>
   <div id="fl" class="auth-form">
-    <div class="af"><label>Email</label><input id="li-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
-    <div class="af"><label>Mot de passe</label><input id="li-p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="af"><label for="li-e">Email</label><input id="li-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="af"><label for="li-p">Mot de passe</label><input id="li-p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
     <div id="li-m"></div>
     <button class="btn-p" id="btn-li" onclick="doLogin()">Se connecter</button>
     <div class="auth-link" onclick="authTab('forgot')">Mot de passe oublié ? <span>Réinitialiser</span></div>
   </div>
   <div id="fr" class="auth-form" style="display:none">
-    <div class="af"><label>Pseudo</label><input id="rg-u" type="text" placeholder="Ex: Alex" maxlength="20"></div>
-    <div class="af"><label>Email</label><input id="rg-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
-    <div class="af"><label>Mot de passe (8 car. min.)</label><input id="rg-p" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+    <div class="af"><label for="rg-u">Pseudo</label><input id="rg-u" type="text" placeholder="Ex: Alex" maxlength="20"></div>
+    <div class="af"><label for="rg-e">Email</label><input id="rg-e" type="email" placeholder="votre@email.com" autocomplete="email"></div>
+    <div class="af"><label for="rg-p">Mot de passe (8 car. min.)</label><input id="rg-p" type="password" placeholder="••••••••" autocomplete="new-password"></div>
     <div id="rg-m"></div>
     <button class="btn-p" id="btn-rg" onclick="doRegister()">Créer mon compte</button>
     <div class="auth-priv">🛡️ <span>Messages chiffrés E2E. Aucune donnée vendue. Données liées à votre foyer uniquement.</span></div>
   </div>
   <div id="ff" class="auth-form" style="display:none">
-    <div class="af"><label>Votre email</label><input id="fg-e" type="email" placeholder="votre@email.com"></div>
+    <div class="af"><label for="fg-e">Votre email</label><input id="fg-e" type="email" placeholder="votre@email.com"></div>
     <div id="fg-m"></div>
     <button class="btn-p" id="btn-fg" onclick="doForgot()">Envoyer le lien de réinitialisation</button>
     <div class="auth-link" onclick="authTab('login')">← Retour</div>
@@ -254,8 +254,8 @@
 <div class="modal">
   <div class="mo-tt" id="mt-t">Nouvelle tâche</div>
   <div class="fc">
-    <div class="fd"><label>Titre *</label><input id="ft-ti" type="text" placeholder="Ex : Passer l'aspirateur…"></div>
-    <div class="fd"><label>Catégorie</label>
+    <div class="fd"><label for="ft-ti">Titre *</label><input id="ft-ti" type="text" placeholder="Ex : Passer l'aspirateur…"></div>
+    <div class="fd"><label for="ft-ca">Catégorie</label>
       <select id="ft-ca">
         <option value="menage">🧹 Ménage</option><option value="admin">📄 Administratif</option>
         <option value="cuisine">🍳 Cuisine</option><option value="reparation">🔧 Réparation</option>
@@ -271,18 +271,18 @@
       </div>
     </div>
     <div class="fd-rw">
-      <div class="fd"><label>Durée (min)</label><input id="ft-du" type="number" min="5" step="5" placeholder="30"></div>
-      <div class="fd"><label>Fréquence</label>
+      <div class="fd"><label for="ft-du">Durée (min)</label><input id="ft-du" type="number" min="5" step="5" placeholder="30"></div>
+      <div class="fd"><label for="ft-fr">Fréquence</label>
         <select id="ft-fr"><option value="once">Une fois</option><option value="daily">Quotidien</option><option value="weekly">Hebdo</option><option value="monthly">Mensuel</option></select>
       </div>
     </div>
-    <div class="fd"><label>Échéance</label><input id="ft-de" type="date"></div>
+    <div class="fd"><label for="ft-de">Échéance</label><input id="ft-de" type="date"></div>
     <div class="tg-rw">
       <span class="tg-lb">🔒 Tâche personnelle — ne compte pas dans l'équité partagée</span>
       <label class="tg"><input type="checkbox" id="ft-ps" onchange="onPsTg()"><span class="tg-sl"></span></label>
     </div>
     <div id="ft-pn" style="display:none;font-size:11px;color:var(--muted);background:var(--goldb);border:1px solid var(--goldm);border-radius:9px;padding:9px 11px">Visible uniquement par vous. Non comptabilisée dans les stats du foyer.</div>
-    <div class="fd"><label>Note</label><textarea id="ft-no" placeholder="Détails…"></textarea></div>
+    <div class="fd"><label for="ft-no">Note</label><textarea id="ft-no" placeholder="Détails…"></textarea></div>
   </div>
   <div class="mo-bts"><button class="btn-cc" onclick="closeM('mo-tk')">Annuler</button><button class="btn-sv" onclick="saveTask()">Enregistrer</button></div>
 </div>
@@ -293,21 +293,21 @@
 <div class="modal">
   <div class="mo-tt" id="mo-tx-t">Dépense</div>
   <div class="fc">
-    <div class="fd"><label>Libellé *</label><input id="tx-ti" type="text" placeholder="Ex : Loyer…"></div>
+    <div class="fd"><label for="tx-ti">Libellé *</label><input id="tx-ti" type="text" placeholder="Ex : Loyer…"></div>
     <div class="fd-rw">
-      <div class="fd"><label>Montant (€) *</label><input id="tx-am" type="number" step="0.01" min="0.01" placeholder="0.00"></div>
-      <div class="fd"><label>Date</label><input id="tx-dt" type="date"></div>
+      <div class="fd"><label for="tx-am">Montant (€) *</label><input id="tx-am" type="number" step="0.01" min="0.01" placeholder="0.00"></div>
+      <div class="fd"><label for="tx-dt">Date</label><input id="tx-dt" type="date"></div>
     </div>
     <div class="fd-rw">
-      <div class="fd"><label>Type</label>
+      <div class="fd"><label for="tx-ty">Type</label>
         <select id="tx-ty">
           <option value="expense">💸 Dépense</option><option value="income">💰 Revenu</option>
           <option value="recurring">🔄 Prélèvement</option><option value="withdrawal">🏧 Retrait</option>
         </select>
       </div>
-      <div class="fd"><label>Compte</label><select id="tx-ac"></select></div>
+      <div class="fd"><label for="tx-ac">Compte</label><select id="tx-ac"></select></div>
     </div>
-    <div class="fd"><label>Catégorie</label>
+    <div class="fd"><label for="tx-ca">Catégorie</label>
       <select id="tx-ca">
         <option value="logement">🏠 Logement</option><option value="alimentation">🛒 Alimentation</option>
         <option value="transport">🚗 Transport</option><option value="sante">🏥 Santé</option>
@@ -315,7 +315,7 @@
         <option value="abonnement">📱 Abonnements</option><option value="autre">📌 Autre</option>
       </select>
     </div>
-    <div class="fd"><label>Note</label><input id="tx-no" type="text" placeholder="Optionnel…"></div>
+    <div class="fd"><label for="tx-no">Note</label><input id="tx-no" type="text" placeholder="Optionnel…"></div>
   </div>
   <div class="mo-bts"><button class="btn-cc" onclick="_editTxId=null;closeM('mo-tx')">Annuler</button><button class="btn-sv" onclick="saveTx()">Enregistrer</button></div>
 </div>
@@ -326,13 +326,13 @@
 <div class="modal">
   <div class="mo-tt">Ajouter un compte</div>
   <div class="fc">
-    <div class="fd"><label>Nom *</label><input id="ac-nm" type="text" placeholder="Ex : Compte commun…"></div>
-    <div class="fd"><label>Type</label>
+    <div class="fd"><label for="ac-nm">Nom *</label><input id="ac-nm" type="text" placeholder="Ex : Compte commun…"></div>
+    <div class="fd"><label for="ac-ty">Type</label>
       <select id="ac-ty"><option value="courant">💳 Compte courant</option><option value="epargne">🏦 Épargne</option><option value="especes">💵 Espèces</option></select>
     </div>
     <div class="fd-rw">
-      <div class="fd"><label>Solde initial (€)</label><input id="ac-bl" type="number" step="0.01" placeholder="0.00"></div>
-      <div class="fd"><label>Couleur</label>
+      <div class="fd"><label for="ac-bl">Solde initial (€)</label><input id="ac-bl" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fd"><label for="ac-co">Couleur</label>
         <select id="ac-co"><option value="#8B5CF6">💜 Violet</option><option value="#0D9488">💚 Vert</option><option value="#D97706">🟡 Or</option><option value="#DC2626">❤️ Rouge</option><option value="#2563EB">💙 Bleu</option></select>
       </div>
     </div>
@@ -378,13 +378,13 @@
     </div>
   </div>
   <div class="fc">
-    <div class="fd"><label>Plat *</label><input id="ml-nm" type="text" placeholder="Ex : Pasta carbonara…"></div>
+    <div class="fd"><label for="ml-nm">Plat *</label><input id="ml-nm" type="text" placeholder="Ex : Pasta carbonara…"></div>
     <div id="ml-hist" style="display:none;margin-top:-4px;margin-bottom:4px"></div>
     <div class="fd">
-      <label>Ingrédients <span style="font-weight:400;color:var(--faint)">(séparés par des virgules)</span></label>
+      <label for="ml-ig">Ingrédients <span style="font-weight:400;color:var(--faint)">(séparés par des virgules)</span></label>
       <textarea id="ml-ig" placeholder="Pâtes, lardons, parmesan, œufs…" style="min-height:72px"></textarea>
     </div>
-    <div class="fd"><label>Note <span style="font-weight:400;color:var(--faint)">(optionnel)</span></label><input id="ml-no" type="text" placeholder="Sans gluten, pour 4 personnes…"></div>
+    <div class="fd"><label for="ml-no">Note <span style="font-weight:400;color:var(--faint)">(optionnel)</span></label><input id="ml-no" type="text" placeholder="Sans gluten, pour 4 personnes…"></div>
     <!-- Sélecteur de slot intégré -->
     <div class="fd"><label>Moment du repas</label>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="ml-slot-picker">
@@ -417,12 +417,12 @@
     </div>
   </div>
   <div class="fc">
-    <div class="fd"><label>Titre *</label><input id="cal-title" type="text" placeholder="Ex : Rendez-vous médecin…"></div>
+    <div class="fd"><label for="cal-title">Titre *</label><input id="cal-title" type="text" placeholder="Ex : Rendez-vous médecin…"></div>
     <div class="fd-rw">
-      <div class="fd"><label>Date *</label><input id="cal-date" type="date"></div>
-      <div class="fd"><label>Heure</label><input id="cal-time" type="time" placeholder="HH:MM"></div>
+      <div class="fd"><label for="cal-date">Date *</label><input id="cal-date" type="date"></div>
+      <div class="fd"><label for="cal-time">Heure</label><input id="cal-time" type="time" placeholder="HH:MM"></div>
     </div>
-    <div class="fd"><label>Fin (optionnel)</label><input id="cal-end" type="time"></div>
+    <div class="fd"><label for="cal-end">Fin (optionnel)</label><input id="cal-end" type="time"></div>
     <div class="fd"><label>Couleur</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="cal-color-picker">
         <div class="cal-color-opt" data-color="#7C3AED" onclick="selectCalColor('#7C3AED',this)" style="width:28px;height:28px;border-radius:50%;background:#7C3AED;cursor:pointer;border:2.5px solid #7C3AED;box-shadow:0 0 0 2px white,0 0 0 4px #7C3AED"></div>
@@ -433,7 +433,7 @@
         <div class="cal-color-opt" data-color="#BE185D" onclick="selectCalColor('#BE185D',this)" style="width:28px;height:28px;border-radius:50%;background:#BE185D;cursor:pointer;border:2.5px solid transparent"></div>
       </div>
     </div>
-    <div class="fd"><label>Note</label><input id="cal-note" type="text" placeholder="Optionnel…"></div>
+    <div class="fd"><label for="cal-note">Note</label><input id="cal-note" type="text" placeholder="Optionnel…"></div>
   </div>
   <div class="mo-bts">
     <button class="btn-cc" onclick="_editCalId=null;closeM('mo-cal')">Annuler</button>
